@@ -1,0 +1,11 @@
+Converting 2 decimals to 3 decimals
+Find:
+toFixed
+0.00 -> 0.000
+"float", 2 -> "float", 3
+ROUND(
+"currency", 2 -> "currency", 3
+
+global.php
+function numberFormat( $number, $type = "int", $decimal = 2, $decimalPoint = '.', $thousandSeparator = ',' )
+function numberFormat( $number, $type = "int", $decimal = 3, $decimalPoint = '.', $thousandSeparator = ',' )

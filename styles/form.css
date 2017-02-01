@@ -1,0 +1,158 @@
+/* styles for form elements */
+
+
+/* general form styles */
+
+form {
+	margin: 0;
+	padding: 0;
+}
+
+input.form_input_text, textarea {
+	width: 450px;
+}
+
+input[type="text"].number, input[type="text"].percent  {
+	width: 110px;
+}
+
+input[type="text"].date {
+	width: 190px;
+}
+
+input[type="tel"], input[type="email"] {
+	width: 250px;
+}
+
+input.browse {
+	height: 22px;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	top: 1px;
+}
+
+input.output_field {
+	background: none repeat scroll 0 0 #FFFFFF !important;
+	border: 1px dotted #CCCCCC;
+}
+
+select.form_input_select {
+	min-width: 115px;
+}
+
+div.multi_row_links {
+	font-size: x-small;
+}
+
+label.required_label {
+	/*font-weight: bold;*/
+}
+
+
+
+
+/* output table styles */
+/*************************************/
+
+
+
+/* styles specific to customer form */
+
+input.form_input_text_contact {
+	width: 263px;
+}
+
+
+
+/* styles specific to order form */
+
+select#invoice_type {
+	width: 189px;
+}
+
+input#tracking_number, input#purchase_number, input#purchase_order_number {
+	width: 183px;
+}
+
+span.span_label {
+	margin: 0 5px 0 20px;
+}
+
+select#delivery_pickup_time {
+	text-align: right;
+}
+
+select.item_brand  { width: 170px; margin-right: 8px; }
+select.item_model  { width: 200px; margin-right: 0; }
+input.item_price    { width: 120px; margin-right: 8px; }
+input.item_quantity { width: 60px !important;  margin-right: 20px !important; margin-left: 10px; }
+th.item_discount_column { width: 120px; }
+th.item_subtotal_column { width: 140px; }
+input.item_discount {	width: 120px; }
+input.item_total    { width: 110px; }
+
+
+
+/* styles specific to payment form */
+table#payment_schedule_input {
+	position: relative;
+	top: -4px;
+}
+
+span.installment_pay_label {
+	margin: 0 10px 0 0;
+}
+
+input.installment_input {
+	width: 140px;
+}
+
+span.installment_on_label {
+	margin: 0 10px 0 10px;
+}
+
+div#add_remove_installment_links {
+	margin-left: 35px;
+}
+
+span#installment_remaining_label {
+	margin-left: 38px;
+}
+
+span#clear_label {
+	color: #00CC66;
+	font-variant: small-caps;
+}
+
+
+/* styles specific to supplier form */
+select#supplier, select#agent_id {
+	width: 204px;
+}
+
+
+/* styles specific to account settings form */
+span.password_matched_flag {
+	margin-left: 10px;
+	display: none;
+}
+
+
+
+/* styles specific to brand/model auto-suggest */
+form#model_suggestion_form span.record_label {
+	width: 50px !important;
+}
+
+
+
+/* styles specific to submit/reset/cancel buttons */
+
+div#form_buttons {
+	margin: 0 0 50px 152px;
+}
+
+div#form_buttons input {
+	margin-right: 5px;
+}

@@ -1,0 +1,8 @@
+<span class="event_log_action">added</span>
+<span class="event_log_main_record_inline">
+<span class="event_log_main_record">
+: </span>
+
+$_POST = htmlentities()
+from database = Filter::output()
+

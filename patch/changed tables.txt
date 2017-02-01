@@ -1,0 +1,20 @@
+Import branch.sql
+Import bugs.sql
+
+
+TABLE customer
+Add 1 column at end of table
+branch_id
+VARCHAR
+Length 50
+Default NULL
+Null YES
+
+UPDATE customer SET branch_id="1";
+
+
+TABLE user
+branch -> branch_id
+Length 50
+
+UPDATE user SET branch_id="1,2";

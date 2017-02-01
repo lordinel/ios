@@ -1,0 +1,6 @@
+Automatic Backup:
+
+echo ios_%DATE:~10,4%-%DATE:~4,2%-%DATE:~7,2%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%
+
+http://realm3.com/articles/how_to_schedule_regular_mysql_backups_in_windows
+

@@ -1,0 +1,280 @@
+/* heading */
+
+div#heading {
+	padding-left: 50px;
+	height: 150px;
+}
+
+div#heading img {
+	float: left;
+	position: relative;
+	top: 0px;
+	margin: 0 30px 0 0;
+}
+
+
+div#heading h2 {
+	-moz-transition-duration: 0.5s;
+	text-shadow: 1px 1px 2px transparent, 0 0 1em transparent, 0 0 0.2em transparent;
+	color: #807970;
+	font: 440% Georgia;
+	padding: 5px 0 40px 10px;
+	margin: 0;
+}
+
+div#heading h2 span {
+	font-size: 50%;
+	margin-left: 5px;
+	position: relative;
+	top: -20px;
+}
+
+div#heading h2:hover {
+	-moz-transition-duration: 0.4s;
+	color: #FFFFFF;
+	text-shadow: 1px 1px 2px black, 0 0 1em #008800, 0 0 0.2em #008800;
+}
+
+
+/* content */
+
+div#home_content {
+	display: block;
+	margin-top: 10px;
+}
+
+
+/* both sidebar */
+
+div.sidebar, div#activity_stream {
+	float: left;
+}
+
+div.panel {
+	border: 1px solid #DBE5EA;
+	border-radius: 3px;
+	box-shadow: 0 3px 4px rgba(0, 0, 0, 0.09);
+	padding: 10px;
+}
+
+div.sidebar span.sidebar_header {
+	font-size: 150%;
+	font-variant: small-caps;
+	float: left;
+	display: block;
+	margin-bottom: 10px;
+}
+
+div.sidebar table {
+	margin: 0;
+	padding: 0;
+	width: 255px;
+}
+
+div.sidebar th {
+	padding: 2px 6px;
+	margin: 0;
+	background: #eaeaea;
+	font-weight: bold;
+	text-align: left;
+}
+
+div.sidebar td {
+	padding: 4px 0 4px 10px;
+	margin: 0;
+}
+
+
+/* left sidebar */
+
+div#left_sidebar {
+	margin-right: 20px;
+	width: 270px;
+	background: url("../images/box-grunge.png") repeat-x scroll 0 0 #F9F9F9;
+}
+
+div#left_sidebar .ui-tabs-panel {
+	padding: 10px 5px;
+	margin: 0;
+	font-size: 90%;
+    /* min-height: 340px; */
+}
+
+div#left_sidebar .ui-tabs-panel a {
+    color: #CC9933;
+    text-decoration: none;
+}
+
+div#left_sidebar .ui-tabs-panel a:hover, div#left_sidebar .ui-tabs-panel a:active {
+    border-bottom: 1px solid;
+    color: #CC6633;
+    text-decoration: none;
+}
+
+td.glance_see_all_link {
+	text-align: right;
+	font-size: 80%;
+	padding-right: 12px !important;
+}
+
+td.glance_none {
+	color: #B5B5B5;
+	padding: 10px !important;
+}
+
+
+/* activity stream */
+
+div#activity_stream {
+	width: 600px;
+	padding: 0;
+	margin: 0;
+	
+}
+
+div#activity_stream header {
+	font-size: 150%;
+	font-variant: small-caps;
+	display: block;
+	padding: 10px;
+	border-top: 1px solid #a6c9e2;
+	border-bottom: 1px solid #a6c9e2;
+}
+
+div#activity_stream_content {
+
+}
+
+div.activity_stream_event {
+	font-size: 100%;
+	padding: 14px 10px 14px 10px;
+	min-height: 50px;
+	border-bottom: 1px solid #EEEEEE;
+	border-top: 1px solid #ffffff;
+	border-right: 1px solid #ffffff;
+	border-left: 1px solid #ffffff;
+}
+
+div.activity_stream_event:hover {
+	background-color: #f4f4f4;
+	border: 1px solid #EEEEEE;
+}
+
+div.event_image, div.event_content {
+	float: left;
+	display: block;
+}
+
+div.event_image {
+	width: 70px;
+	position: relative;
+}
+
+span.event_image_overlay {
+	float: left;
+	position: absolute;
+	left: 30px;
+	top: 20px;
+	z-index: 50;
+}
+
+div.event_content {
+	width: 500px;
+}
+
+div.activity_age {
+	font-size: 80%;
+	color: #B5B5B5;
+	margin: 5px 0 0 0;
+}
+
+span.activity_dot {
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+div#activity_stream_end {
+	font-size: 90% !important;
+	min-height: 20px !important;
+	border-bottom: none;
+	background: #eaeaea;
+}
+
+div#activity_stream_empty {
+	font-size: 90% !important;
+	min-height: 20px !important;
+	border-bottom: none;
+	background: #eaeaea;
+	margin-bottom: 300px;
+}
+
+span.event_log_main_record {
+	display: block;
+	font-weight: bold;
+	font-variant: small-caps;
+	margin-bottom: 5px;
+	/*color: #6EA2DE; */
+}
+
+span.event_log_main_record_inline {
+	font-weight: bold;
+	/*color: #6EA2DE; */
+}
+
+span.event_log_action {
+	font-style: italic;
+}
+
+
+/* right sidebar */
+
+div#right_sidebar {
+    
+}
+
+div.right_panel {
+    margin-left: 20px;
+    width: 240px;
+	background: url("../images/box-grunge.png") repeat-x scroll 0 0 #F9F9F9;
+}
+
+div.right_panel ul {
+	list-style-type: none;
+	line-height: 200%;
+	font-size: 130%;
+}
+
+div.right_panel ul li {
+	margin-left: -15px;
+}
+
+div.right_panel ul li img {
+	margin-right: 15px;
+}
+
+div#about_section {
+	display: block;
+	margin-top: 20px;
+	padding-top: 20px !important;
+	padding-bottom: 20px !important;
+    min-height: 65px;
+}
+
+div#about_section_img, div#about_section_text {
+	float: left;
+}
+
+div#about_section_text {
+	margin-left: 7px;
+}
+
+span#about_section_text_h1 {
+	font-weight: bold;
+	font-size: 120%;
+}
+
+
+/* hack for footer */
+div#footer {
+	padding-top: 50px !important;
+}

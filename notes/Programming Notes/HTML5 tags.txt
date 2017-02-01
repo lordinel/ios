@@ -1,0 +1,153 @@
+The <abbr> tag indicates an abbrevation or an acronym, like "WWW" or "NATO".
+<abbr title="World Health Organization">WHO</abbr>
+
+
+The <address> tag defines the contact information for the author or owner of a document.
+<address>
+Written by W3Schools.com<br />
+<a href="mailto:us@example.org">Email us</a><br />
+Address: Box 564, Disneyland<br />
+Phone: +12 34 56 78
+</address>
+
+
+The <article> tag defines external content.
+<article>
+<a href="http://blog.netscape.com/2007/12/28/
+end-of-support-for-netscape-web-browsers">
+Netscape is dead</a><br />
+AOL has a long history on the internet, being one of
+the first companies to really get people online.....
+</article> 
+
+
+The <aside> tag defines some content aside from the content it is placed in.
+The aside content should be related to the surrounding content.
+<p>My family and I visited The Epcot center this summer.</p>
+<aside>
+<h4>Epcot Center</h4>
+The Epcot Center is a theme park in Disney World, Florida.
+</aside> 
+
+
+The <caption> tag defines a table caption.
+<table>
+  <caption>Monthly savings</caption>
+  <tr>
+
+
+The <datalist> tag defines a list of options. Use this element together with the input element, to define which values the input element can have.
+<input list="cars" />
+<datalist id="cars">
+<option value="BMW">
+<option value="Ford">
+<option value="Volvo">
+</datalist>
+
+
+The <details> tag is used to describe details about a document, or parts of a document.
+<details>
+<summary>This document was written in 2010.</summary>
+</details>
+
+
+The <fieldset> tag draws a box around the related form elements.
+The <legend> tag defines a caption for the fieldset element.
+<form>
+  <fieldset>
+    <legend>Personalia:</legend>
+    Name: <input type="text" /><br />
+    Email: <input type="text" /><br />
+    Date of birth: <input type="text" />
+  </fieldset>
+</form>
+
+
+The <figure> tag is used to group some elements.
+The <figcaption> tag contains a caption for the "figure" element.
+<figure>
+  <figcaption>WWF</figcaption>
+  <p>The World Wildlife Foundation was born in 1961...</p>
+</figure>
+
+
+The <footer> tag defines the footer of a section or document. Typically contains the name of the author, the date the document was written and/or contact information.
+<footer>This document was written in 2009</footer>
+
+
+The <header> tag defines an introduction to the document.
+<header>
+<h1>Welcome to my homepage</h1>
+<p>My name is Donald Duck</p>
+</header>
+
+
+The <hgroup> tag defines the heading of a section or a document.
+<hgroup>
+<h1>Welcome to my WWF</h1>
+<h2>For a living planet</h2>
+</hgroup>
+
+
+The <label> tag defines a label for an input element.
+<label for="male">Male</label>
+<input type="radio" name="sex" id="male" />
+
+
+The <mark> tag defines marked text. Use the <mark> tag if you want to highlight parts of your text
+<p>Do not forget to buy <mark>milk</mark> today.</p>
+
+
+The <menu> tag defines a menu list. Use this when you wish to list form controls.
+<menu>
+<li><input type="checkbox" />Red</li>
+<li><input type="checkbox" />blue</li>
+</menu>
+
+
+The <meter> tag defines a measurement. Used only for measurements with a known minimum and maximum value.
+<meter min="0" max="10">2</meter><br />
+<meter>2 out of 10</meter><br />
+<meter>20%</meter>
+
+
+The <nav> tag defines a section of navigation.
+<nav>
+<a href="default.asp">Home</a>
+<a href="tag_meter.asp">Previous</a>
+<a href="tag_noscript.asp">Next</a>
+</nav>
+
+
+The <output> tag defines different types of output, such as output written by a script.
+<form action="form_action.asp" method="get" name="sumform">
+<output name="sum"></output>
+</form>
+
+
+The <progress> tag defines work-in-progress.
+The object's downloading progress:
+<progress>
+<span id="objprogress">76</span>%
+</progress>
+
+
+The <q> tag defines the start of a short quotation.
+<p>WWF's goal is to:
+<q cite="http://www.wwf.org">
+build a future where people live in harmony with nature
+</q> we hope they succeed.</p>
+
+
+The <section> tag defines sections in a document. Such as chapters, headers, footers, or any other sections of the document.
+<section>
+  <h1>WWF</h1>
+  <p>The World Wildlife Foundation was born in 1961...</p>
+</section>
+
+
+The <wbr> tag defines where in a word it would be ok to add a line-break.
+When a word is to long, or you are afraid that the browser will break your lines at the wrong place, use the <wbr> element as a line-break opportunity.
+<p>
+To learn AJAX, you must be familiar with the XML<wbr>Http<wbr>Request Object.
+</p>
