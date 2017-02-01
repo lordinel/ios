@@ -5,8 +5,8 @@
 define( "PROG_NAME", 	  "IOS" );								// application name
 define( "PROG_NAME_LONG", "Inventory and Ordering System" );	// application name (long format)
 define( "VERSION", 		  "4.10" );							    // application version number
-define( "BUILD", 		  "201610111000" );						// application build number
-define( "YEAR", 		  "2016" );								// year of copyright
+define( "BUILD", 		  "201702020500" );						// application build number
+define( "YEAR", 		  "2017" );								// year of copyright
 define( "CODENAME", 	  "Chakra" );							// project codename
 define( "COMPANY", 		  "Chakra Development Group" );			// developer
 
