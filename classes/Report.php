@@ -385,6 +385,208 @@ END;
 		}
 	}
 	
+	// export to excel
+	public static function exportDailySalesReportToExcel( $username, $reportDateParam )
+	{
+		$sheetTitle = 'Daily Sales Report';
+		$fileTimeStampExtension = date( EXCEL_FILE_TIMESTAMP_FORMAT );
+		$headingTimeStamp = dateFormatOutput( $fileTimeStampExtension, EXCEL_HEADING_TIMESTAMP_FORMAT, EXCEL_FILE_TIMESTAMP_FORMAT );
+		$reportDateTmp = new DateTime( $reportDateParam );
+		$reportDate = $reportDateTmp->format( 'Y-m-d' );
+
+		self::$database = new Database();
+		
+		require_once( "classes/Filter.php" );
+
+		// import PHPExcel library
+		require_once( 'libraries/phpexcel/PHPExcel.php' );
+
+		// instantiate formatting variables
+		$backgroundColor = new PHPExcel_Style_Color();
+		$fontColor 		 = new PHPExcel_Style_Color();
+
+		// color-specific variables
+		$fontColorRed	 	= new PHPExcel_Style_Color();
+		$fontColorRed->setRGB( 'FF0000' );
+		$fontColorDarkRed	= new PHPExcel_Style_Color();
+		$fontColorDarkRed->setRGB( 'CC0000' );
+		$fontColorGreen	 	= new PHPExcel_Style_Color();
+		$fontColorGreen->setRGB( '00CC00' );
+		$fontColorGray	 	= new PHPExcel_Style_Color();
+		$fontColorGray->setRGB( '999999' );
+
+		// set value binder
+		PHPExcel_Cell::setValueBinder( new PHPExcel_Cell_AdvancedValueBinder() );
+
+		// create new PHPExcel object
+		$objPHPExcel = new PHPExcel();
+
+		// set file properties
+		$objPHPExcel->getProperties()
+					->setCreator( $username )
+					->setLastModifiedBy( $username )
+					->setTitle( $sheetTitle . ' as of ' . $headingTimeStamp )
+					->setSubject( EXCEL_FILE_SUBJECT )
+					->setDescription( EXCEL_FILE_DESCRIPTION )
+					->setKeywords( EXCEL_FILE_KEYWORDS )
+					->setCategory( EXCEL_FILE_CATEGORY );
+
+		// create a first sheet
+		$objPHPExcel->setActiveSheetIndex(0);
+		$activeSheet = $objPHPExcel->getActiveSheet();
+
+		// rename present sheet
+		$activeSheet->setTitle( $sheetTitle );
+
+		// set default font
+		$activeSheet->getDefaultStyle()->getFont()->setName( EXCEL_DEFAULT_FONT_NAME )
+												  ->setSize( EXCEL_DEFAULT_FONT_SIZE );
+
+		// write sheet headers
+		$activeSheet->setCellValue( 'A1', CLIENT );
+		$activeSheet->setCellValue( 'A2', $sheetTitle );
+		$activeSheet->setCellValue( 'A3', 'As of ' . $headingTimeStamp );
+
+		// format sheet headers
+		$backgroundColor->setRGB( EXCEL_HEADER_BACKGROUND_COLOR );
+		$activeSheet->getStyle( 'A1:C4' )->getFill()->setFillType( PHPExcel_Style_Fill::FILL_SOLID );
+		$activeSheet->getStyle( 'A1:C4' )->getFill()->setStartColor( $backgroundColor );
+		$activeSheet->getStyle( 'A1:C2' )->getFont()->setBold( true );
+		$activeSheet->getStyle( 'A1:C3' )->getFont()->setName( EXCEL_HEADER_FONT_NAME );
+		$activeSheet->getStyle( 'A1' )->getFont()->setColor( $fontColorRed );
+		$activeSheet->getStyle( 'A1' )->getFont()->setSize( EXCEL_HEADER1_FONT_SIZE );
+		$activeSheet->getStyle( 'A2' )->getFont()->setSize( EXCEL_HEADER2_FONT_SIZE );
+		$activeSheet->getStyle( 'A3' )->getFont()->setSize( EXCEL_HEADER2_FONT_SIZE );
+
+		// write column headers
+		$activeSheet->setCellValue( 'B5', 'Amounts in (' . CURRENCY . ')' );
+
+		// set column widths
+		$activeSheet->getColumnDimension( 'A' )->setWidth( 30 );
+		$activeSheet->getColumnDimension( 'B' )->setWidth( 20 );
+		$activeSheet->getColumnDimension( 'C' )->setWidth( 20 );
+
+		// format column headers
+		$fontColor->setRGB( EXCEL_COLUMN_HEADER_FONT_COLOR );
+		$backgroundColor->setRGB( EXCEL_COLUMN_HEADER_BACKGROUND_COLOR );
+		$activeSheet->getStyle( 'A5:C5' )->getFill()->setFillType( PHPExcel_Style_Fill::FILL_SOLID );
+		$activeSheet->getStyle( 'A5:C5' )->getFill()->setStartColor( $backgroundColor );
+		$activeSheet->getStyle( 'A5:C5' )->getFont()->setColor( $fontColor );
+		$activeSheet->getStyle( 'A5:C5' )->getFont()->setBold( true );
+		$activeSheet->getStyle( 'A5:C5' )->getAlignment()->setWrapText( true );
+
+		// freeze pane
+		$activeSheet->freezePane( 'A6' );
+
+
+		// write data
+		$activeSheet->setCellValue( 'A6', 'Banks' );
+
+		$activeSheet->setCellValue( 'A7',  $paramArray['bank_name_1'] );
+		$activeSheet->setCellValue( 'A8',  $paramArray['bank_name_2'] );
+		$activeSheet->setCellValue( 'A9',  $paramArray['bank_name_3'] );
+		$activeSheet->setCellValue( 'A10', $paramArray['bank_name_4'] );
+		$activeSheet->setCellValue( 'A11', $paramArray['bank_name_5'] );
+
+		$activeSheet->setCellValue( 'B7',  $paramArray['bank_amount_1'] );
+		$activeSheet->setCellValue( 'B8',  $paramArray['bank_amount_2'] );
+		$activeSheet->setCellValue( 'B9',  $paramArray['bank_amount_3'] );
+		$activeSheet->setCellValue( 'B10', $paramArray['bank_amount_4'] );
+		$activeSheet->setCellValue( 'B11', $paramArray['bank_amount_5'] );
+
+		$activeSheet->setCellValue( 'A13', 'Bank Total' );
+		$activeSheet->setCellValue( 'B13', '=SUM(B7:B11)' );
+
+		$activeSheet->setCellValue( 'A14', 'Amount Receivable' );
+		$activeSheet->setCellValue( 'B14', str_replace( ",", "", $paramArray['amount_receivable'] ) );
+
+		$activeSheet->setCellValue( 'A15', 'PDC Receivable' );
+		$activeSheet->setCellValue( 'B15', str_replace( ",", "", $paramArray['pdc_receivable'] ) );
+
+		$activeSheet->setCellValue( 'A16', 'Inventory Amount' );
+		$activeSheet->setCellValue( 'B16', str_replace( ",", "", $paramArray['inventory_amount'] ) );
+
+		$activeSheet->setCellValue( 'C17', '=SUM(B13:B16)' );
+
+		$activeSheet->setCellValue( 'A19', 'Amount Payable' );
+		$activeSheet->setCellValue( 'B19', str_replace( ",", "", $paramArray['amount_payable'] ) );
+
+		$activeSheet->setCellValue( 'A20', 'PDC Payable' );
+		$activeSheet->setCellValue( 'B20', str_replace( ",", "", $paramArray['pdc_payable'] ) );
+
+		$activeSheet->setCellValue( 'A21', 'Rebate Payable' );
+		$activeSheet->setCellValue( 'B21', str_replace( ",", "", $paramArray['rebate_payable'] ) );
+
+		$activeSheet->setCellValue( 'A22', 'PDC Rebate Payable' );
+		$activeSheet->setCellValue( 'B22', str_replace( ",", "", $paramArray['pdc_rebate'] ) );
+
+		$activeSheet->setCellValue( 'A23', 'Other Expenses' );
+		$activeSheet->setCellValue( 'B23', str_replace( ",", "", $paramArray['other_expenses'] ) );
+
+		$activeSheet->setCellValue( 'A24', 'Capital' );
+		$activeSheet->setCellValue( 'B24', str_replace( ",", "", $paramArray['capital'] ) );
+
+		$activeSheet->setCellValue( 'C25', '=SUM(B19:B24)' );
+
+		$activeSheet->setCellValue( 'A27', 'Profit' );
+		$activeSheet->setCellValue( 'C27', '=C17-C25' );
+
+
+		// post formatting
+		$activeSheet->getStyle( 'A6:A27' )->getAlignment()->setWrapText( true );
+		$activeSheet->getStyle( 'A6' )->getFont()->setBold( true );
+		$activeSheet->getStyle( 'A13:A27' )->getFont()->setBold( true );
+		$activeSheet->getStyle( 'C6:C27' )->getFont()->setBold( true );
+		$activeSheet->getStyle( 'B6:C26' )->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
+
+
+		// conditional formatting
+		// * set green for net profit, red for net loss
+		$conditionalStyles = $activeSheet->getStyle( 'C27' )->getConditionalStyles();
+
+		$objConditional1 = new PHPExcel_Style_Conditional();
+		$objConditional1->setConditionType( PHPExcel_Style_Conditional::CONDITION_CELLIS );
+		$objConditional1->setOperatorType( PHPExcel_Style_Conditional::OPERATOR_GREATERTHAN );
+		$objConditional1->addCondition( '0' );
+		$objConditional1->getStyle()->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
+		$objConditional1->getStyle()->getFont()->setColor( $fontColorGreen );
+
+		array_push( $conditionalStyles, $objConditional1 );
+
+		$objConditional2 = new PHPExcel_Style_Conditional();
+		$objConditional2->setConditionType( PHPExcel_Style_Conditional::CONDITION_CELLIS );
+		$objConditional2->setOperatorType( PHPExcel_Style_Conditional::OPERATOR_LESSTHANOREQUAL );
+		$objConditional2->addCondition( '0' );
+		$objConditional2->getStyle()->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
+		$objConditional2->getStyle()->getFont()->setColor( $fontColorRed );
+
+		array_push( $conditionalStyles, $objConditional2 );
+
+		$activeSheet->getStyle( 'C27' )->setConditionalStyles( $conditionalStyles );
+
+
+		// format totals
+		$styleArray = array(
+			'borders' => array(
+				'top' => array( 'style' => PHPExcel_Style_Border::BORDER_THICK )
+			)
+		);
+		$activeSheet->getStyle( 'A27:C27' )->applyFromArray( $styleArray );
+		$activeSheet->getStyle( 'A27' )->getFont()->setColor( $fontColorRed );
+
+
+		// set active sheet index to the first sheet, so Excel opens this as the first sheet
+		$objPHPExcel->setActiveSheetIndex( 0 );
+
+		// redirect output to a client�s web browser (Excel2007)
+		header( 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
+		header( 'Content-Disposition: attachment;filename="'.CLIENT.' - Profit Report - as of '.$fileTimeStampExtension.'.xlsx"' );
+		header( 'Cache-Control: max-age=0' );
+
+		$objWriter = PHPExcel_IOFactory::createWriter( $objPHPExcel, 'Excel2007' );
+		$objWriter->save( 'php://output' );
+	}
+	
 	
 	private static function showPeriodicSalesReport( $category, $startDate, $endDate )
 	{
@@ -2369,13 +2571,17 @@ END;
 	}
 	
 	
-	// tasks for order list
-	public static function showListTasks()
+	// tasks for reports
+	public static function showListTasks( $reportType )
 	{
 ?>		    <script type="text/javascript">
 			<!--
-				function getProfitCalcData()
-				{
+				function getDailySalesData() {
+					alert('Export of Daily Sales coming soon!');
+					//exportToExcelConfirm('data=daily_sales&report_date=' + $('#date').val() );
+				}
+				
+				function getProfitCalcData() {
 					exportToExcelConfirm('data=profit_calc&'  +
 										 'bank_name_1='       + $('#bank_name_1').val()       + '&' +
 										 'bank_name_2='       + $('#bank_name_2').val()       + '&' +
@@ -2404,12 +2610,19 @@ END;
 			<ul>
 				<li id="task_export"><a href="javascript:void(0)" onclick="showDialog('Export to Excel','<?php
 
-					// display confirmation to unclear order
+					// display confirmation to export to excel
 					$dialogMessage = 'Do you want to export this page to an Excel file?<br /><br /><br /><br /><br />';
 
 					// Yes and No buttons
 					$dialogMessage = $dialogMessage . '<div id="dialog_buttons">' .
-						'<input type="button" value="Yes" onclick="getProfitCalcData()" />' .
+						'<input type="button" value="Yes" onclick="';
+					
+					switch( $reportType ) {
+						case 'daily-sales' : $dialogMessage = $dialogMessage . 'getDailySalesData()'; break;
+						case 'profit-calc': $dialogMessage = $dialogMessage . 'getProfitCalcData()'; break;
+					}
+					
+					$dialogMessage = $dialogMessage . '" />' .
 						'<input type="button" value="No" onclick="hideDialog()" />' .
 						'</div>';
 
