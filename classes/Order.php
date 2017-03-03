@@ -2967,5 +2967,19 @@ END;
 			echo "<div>No orders found for this criteria.</div>";
 		}
 	}
+
+
+	public static function showMissingInvoice() {
+		self::$database = new Database;
+		
+		// get parameters
+		if ( !isset( $_POST['criteria'] ) )	{
+			$criteria = "DR";
+		} else {
+			$criteria = $_POST['criteria'];
+		}
+		
+		echo $criteria;
+	}	
 }
 ?>

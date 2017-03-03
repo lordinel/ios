@@ -247,7 +247,11 @@ class HtmlLayout
 				 '<li class="menu_separator"><a href="list_orders.php?criteria=cleared-orders">Cleared orders</a></li>' .
 				 '<li><a href="list_orders.php?criteria=canceled-orders">Canceled orders</a></li>' .
 				 '<li class="menu_separator"><a href="list_orders.php?criteria=all-orders">All orders</a></li>' .
-				 '<li class="menu_separator"><a href="add_order.php">Add new order...</a></li>';
+				 '<li class="menu_separator"><a href="#">Actions</a>' .
+				 '<ul>' .
+				 '<li class="menu_separator"><a href="add_order.php">Add new order</a></li>' .
+				 '<li class="menu_separator"><a href="list_orders_sidr.php?criteria=DR">Missing DRs</a></li>'. 
+				 '</ul></li>';
 			echo '</ul>';
 			echo '</li>';
 			echo '<li><a href="#">Customers</a>';

@@ -9,3 +9,25 @@ ROUND(
 global.php
 function numberFormat( $number, $type = "int", $decimal = 2, $decimalPoint = '.', $thousandSeparator = ',' )
 function numberFormat( $number, $type = "int", $decimal = 3, $decimalPoint = '.', $thousandSeparator = ',' )
+
+
+Missing DRs
+
+SELECT
+	CONCAT(z.expected, IF(z.got-1>z.expected, CONCAT(' thru ',z.got-1), '')) AS missing
+FROM (
+	SELECT
+		@rownum:=@rownum+1 AS expected,
+		IF(@rownum=delivery_receipt, 0, @rownum:=delivery_receipt) AS got
+	FROM
+		(SELECT @rownum:=0) AS a
+		JOIN `order`
+		ORDER BY delivery_receipt * 1
+	) AS z
+WHERE z.got!=0;
+
+
+DRs that cannot be sorted
+SELECT id, delivery_receipt FROM `order` WHERE (delivery_receipt * 1 = 0) AND delivery_receipt IS NOT NULL
+
+
