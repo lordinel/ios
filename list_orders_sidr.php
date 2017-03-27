@@ -16,6 +16,7 @@
 				switch ( $_GET['criteria'] ) {
 					case "DR": echo "Missing DRs"; break;
 					case "SI": echo "Missing SIs"; break;
+					default: redirectToHomePage();
 				}
 			} else {
 				redirectToHomePage();
@@ -27,7 +28,7 @@
 
 	<script type="text/javascript">
 		ajax( null, 'missing_invoice_section', 'innerHTML', 'Order::showMissingInvoice', 'criteria=<?php
-				echo Filter::input( $_GET['criteria'] );
+				echo $_GET['criteria'];
 		?>' );
 	</script>
 <?php

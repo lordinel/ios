@@ -1,0 +1,2 @@
+(Edit via WampServer)
+sql-mode = NONE
