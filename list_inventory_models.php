@@ -22,7 +22,7 @@ if (!isset($_GET['brandID'])) {
 	redirectToHomePage();
 }
 
-$brandName = Inventory::getBrandName(Filter::input($_GET['brandID']));
+$brandName = Inventory::getBrandName($_GET['brandID']);
 if ($brandName == null) {
 	redirectToHomePage();
 }

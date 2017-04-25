@@ -606,7 +606,7 @@ function checkTrackingNumber( transactionClass )
 	}
 	else
 	{
-		waitTimeStarted = false
+		waitTimeStarted = false;
 		previousValue = "";
 		window.clearTimeout( timeoutID );
 		$('#tracking_number').css( 'color', goodInputStyle );

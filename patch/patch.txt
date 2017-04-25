@@ -31,3 +31,21 @@ DRs that cannot be sorted
 SELECT id, delivery_receipt FROM `order` WHERE (delivery_receipt * 1 = 0) AND delivery_receipt IS NOT NULL
 
 
+
+
+1. Code cleanup
+2. Set version to 5.0
+3. Bug: format page numbers
+4. Put pagination above table
+5. Right align page numbers
+6. Bug: menu does not clip to top on scroll - fixed
+7. Bug: revenue and expense report chart not loading properly
+8. Checking of duplicate SI/DR during order creation not working - fixed
+9. Clicking on page number dropdown does not change page - fixed
+10. Special characters displayed in autofill data - fixed
+11. Uncanceling an order does not update inventory correctly - fixed
+12. Clearing an order does not update inventory correctly - fixed
+13. Prevent form resubmissions
+
+
+

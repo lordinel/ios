@@ -1,36 +1,25 @@
 <?php
 
-	$PAGE_NAME = "Edit Customer";
+$PAGE_NAME = 'Edit Customer';
 
-	require_once( "controls/autoload.php" );
+require_once('controls/autoload.php');
 
-	$htmlLayout = new HtmlLayout( $PAGE_NAME );
-	
-	$htmlLayout->loadStyle( "form" );
-	$htmlLayout->loadScript( "form" );
-	
-	$htmlLayout->loadScript( "person" );
-	$htmlLayout->loadScript( "customer" );
-	
-	$htmlLayout->loadScript( "data" );
-	
-	$htmlLayout->loadScript( "ajax" );
-	
-	$htmlLayout->paint();
+$htmlLayout = new HtmlLayout($PAGE_NAME);
+$htmlLayout->loadStyle('form');
+$htmlLayout->loadScript('form');
+$htmlLayout->loadScript('person');
+$htmlLayout->loadScript('customer');
+$htmlLayout->loadScript('data');
+$htmlLayout->loadScript('ajax');
+$htmlLayout->paint();
 
-	if ( !isset( $_GET['id'] ) )			// customer ID is not specified
-	{
-?>
-		<script type="text/javascript">
-		<!--
-			document.location = "index.php";
-		// -->
-		</script>
-<?php
-	}
+if (!isset($_GET['id'])) {
+	// customer ID is not specified
+	redirectToHomePage();
+}
 
-	$htmlLayout->showMainMenu();
-	$htmlLayout->showPageHeading( 'customers.png', true );
+$htmlLayout->showMainMenu();
+$htmlLayout->showPageHeading('customers.png', true);
 
-	Customer::showInputForm( Filter::input( $_GET['id'] ) );
+Customer::showInputForm(Filter::input($_GET['id']));
 ?>

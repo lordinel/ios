@@ -77,7 +77,7 @@ function ajax( callerType,			// type of element that called this ajax function (
 			} else {
 				return false;
 			}
-		}
+		};
 
 		// open AJAX connection
 		xmlhttp.open( "POST", "controls/ajax.php", false );

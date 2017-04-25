@@ -193,8 +193,7 @@ abstract class Transaction extends Layout
 
 		$count = 0;
 		
-		while( $row = self::$database->getResultRow( $resultSet ) )
-		{
+		while( $row = self::$database->getResultRow( $resultSet ) ) {
 			$count = $count + $row['count'];
 		}
 		
@@ -335,7 +334,7 @@ abstract class Transaction extends Layout
 					$oldInventoryQuantity[] = $item['quantity'];
 				}
 
-				for ($i = 0; $i < count( $oldInventoryID ); $i++) {
+				for ($i = 0, $oldInventoryCount = count($oldInventoryID); $i < $oldInventoryCount; $i++) {
 					// return back the reserved stock prior to updating
 					$sqlQuery = "UPDATE inventory SET reserved_stock = ".
 								"IF(".$oldInventoryQuantity[$i]." <= reserved_stock,reserved_stock - ".$oldInventoryQuantity[$i].",0) ".
