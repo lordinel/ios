@@ -166,7 +166,7 @@ div.event_image, div.event_content {
 }
 
 div.event_image {
-	width: 70px;
+	width: 80px;
 	position: relative;
 }
 
@@ -179,7 +179,7 @@ span.event_image_overlay {
 }
 
 div.event_content {
-	width: 500px;
+	width: 490px;
 }
 
 div.activity_age {
@@ -211,9 +211,7 @@ div#activity_stream_empty {
 span.event_log_main_record {
 	display: block;
 	font-weight: bold;
-	font-variant: small-caps;
 	margin-bottom: 5px;
-	/*color: #6EA2DE; */
 }
 
 span.event_log_main_record_inline {
@@ -223,6 +221,7 @@ span.event_log_main_record_inline {
 
 span.event_log_action {
 	font-style: italic;
+	background-color: #EEEEEE;
 }
 
 

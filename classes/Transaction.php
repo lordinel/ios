@@ -1500,6 +1500,78 @@ class="bad">' . CURRENCY . ' 0.000</span>.<br />' .
 			}
 		}
 	}
+	
+	
+	//------------------------------------------------------------------------------------------------------------
+	// display missing invoice numbers; ajax function
+	//------------------------------------------------------------------------------------------------------------
+	public static function showMissingInvoice() {
+		self::$database = new Database;
+		
+		// get parameters
+		if (!isset($_POST['criteria'])) {
+			$table = 'order';
+		} elseif ($_POST['criteria'] != 'order' && $_POST['criteria'] != 'purchase' ) {
+			$table = 'order';
+		} else {
+			$table = $_POST['criteria'];
+		}
+		
+		if ($table == 'order') {
+			$tableHeading = 'Order';
+		} else {
+			$tableHeading = 'Purchase';
+		}
+		
+		if (!isset($_POST['invoice_type'])) {
+			$invoiceType = 'DR';
+		} else {
+			$invoiceType = $_POST['invoice_type'];
+		}
+		
+		if ($invoiceType == 'DR') {
+			$field = 'delivery_receipt';
+		} else {
+			$field = 'sales_invoice';
+		}
+		
+		// check unused invoice numbers
+		$sqlQuery = "SELECT CONCAT(z.expected, IF(z.got-1>z.expected, CONCAT(' thru ',z.got-1), '')) AS missing " .
+					"FROM (SELECT @rownum:=@rownum+1 AS expected, IF(@rownum=$field, 0, @rownum:=$field) AS got " .
+					"FROM (SELECT @rownum:=0) AS a JOIN `$table` ORDER BY $field * 1) AS z " .
+					"WHERE z.got!=0";
+		$resultSet = self::$database->query($sqlQuery);
+		
+		echo '<table class="item_input_table" id="missing_invoice">' .
+			 "<thead><tr><th>Unused $invoiceType Numbers in {$tableHeading}s</th></tr></thead><tbody>";
+		if (self::$database->getResultCount($resultSet) == 0) {
+			echo '<tr class="item_row"><td>No unused ' . $invoiceType . ' numbers found.</td></tr>';
+		} else {
+			while ($order = self::$database->getResultRow($resultSet)) {
+				echo '<tr class="item_row"><td>' . $invoiceType . ' ' . $order['missing'] . '</td></tr>';
+			}
+		}
+		echo '</tbody></table>';
+		
+		// check orders with invalid SI/DR numbers
+		$sqlQuery = "SELECT id, $field FROM `$table` WHERE ($field * 1 = 0) AND $field IS NOT NULL";
+		$resultSet = self::$database->query($sqlQuery);
+		
+		echo '<table class="item_input_table" id="invalid_invoice">' .
+			 "<thead><tr><th>{$tableHeading}s with Invalid $invoiceType Numbers</th><th>$invoiceType Number</th></tr></thead><tbody>";
+		if (self::$database->getResultCount($resultSet) == 0) {
+			echo '<tr class="item_row"><td colspan="2">No ' . $table . 's with invalid ' . $invoiceType . ' numbers found.</td></tr>';
+		} else {
+			while ($order = self::$database->getResultRow($resultSet)) {
+				echo '<tr class="item_row">' . 
+					 '<td>' . $tableHeading . ' No. <a href="view_order_details.php?id=' . $order['id'] . '">' .$order['id'] . '</a></td><td>' .
+					 $order[$field] . '</td></tr>';
+			}
+		}
+		echo '</tbody></table>';
+		
+		echo '<br style="clear: both" /><br /><br />';
+	}
 }
 
 ?>

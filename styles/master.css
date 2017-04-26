@@ -1533,6 +1533,26 @@ table#permissions_table td label {
 }
 
 
+
+/* missing onvoices */
+table#missing_invoice {
+	width: 300px;
+	float: left;
+	margin-left: 10%;
+}
+
+table#invalid_invoice {
+	width: 400px;
+	float: left;
+	margin-left: 15%;
+}
+
+table#missing_invoice td, table#invalid_invoice td {
+	padding-left: 20px;
+}
+
+
+
 /* experimental */
 input::-moz-placeholder {
     color: #999999;
@@ -1551,3 +1571,6 @@ input::placeholder {
 	font-style: italic;
 	font-size: 90%;
 }
+
+
+

@@ -220,8 +220,9 @@ class HtmlLayout
 				 '<li class="menu_separator"><a href="list_orders.php?criteria=all-orders">All orders</a></li>' .
 				 '<li class="menu_separator"><a href="#">Actions</a>' .
 				 '<ul>' .
-				 '<li class="menu_separator"><a href="add_order.php">Add new order</a></li>' .
-				 '<li class="menu_separator"><a href="list_orders_sidr.php?criteria=DR">Missing DRs</a></li>' .
+				 '<li><a href="add_order.php">Add order...</a></li>' .
+				 '<li class="menu_separator"><a href="list_missing_invoices.php?criteria=order&invoice_type=DR">Missing DRs</a></li>' .
+				 '<li><a href="list_missing_invoices.php?criteria=order&invoice_type=SI">Missing SIs</a></li>' .
 				 '</ul></li>';
 			echo '</ul>';
 			echo '</li>';
@@ -232,7 +233,7 @@ class HtmlLayout
 				 '<li><a href="list_customers.php?criteria=without-receivable">Without receivable</a></li>' .
 				 '<li class="menu_separator"><a href="list_customers.php?criteria=with-rebate">With rebate</a></li>' .
 				 '<li><a href="list_customers.php?criteria=without-rebate">Without rebate</a></li>' .
-				 '<li class="menu_separator"><a href="add_customer.php">Add new customer...</a></li>';
+				 '<li class="menu_separator"><a href="add_customer.php">Add customer...</a></li>';
 			echo '</ul>';
 			echo '</li>';
 		}
@@ -263,7 +264,7 @@ class HtmlLayout
 				 '<li><a href="list_suppliers.php?criteria=without-payable">Without payable</a></li>' .
 				 '<li class="menu_separator"><a href="list_suppliers.php?criteria=with-rebate">With rebate</a></li>' .
 				 '<li><a href="list_suppliers.php?criteria=without-rebate">Without rebate</a></li>' .
-				 '<li class="menu_separator"><a href="add_supplier.php">Add new supplier...</a></li>';
+				 '<li class="menu_separator"><a href="add_supplier.php">Add supplier...</a></li>';
 			echo '</ul>';
 			echo '</li>';
 		}
@@ -364,7 +365,7 @@ class HtmlLayout
 		// tools menu
 		if ($this->user->checkPermission(array('manage_users', 'event_log', 'consistency_check'), $database) ||
 			$this->user->getUserID() == 'administrator' || $this->user->getUserID() == 'ios_support') {
-			echo '<li><a href="#">Tools</a>';
+			echo '<li><a href="#">Admin</a>';
 			echo '<ul>';
 			
 			if ($this->user->checkPermission('manage_users', $database)) {

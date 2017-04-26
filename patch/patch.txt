@@ -46,6 +46,9 @@ SELECT id, delivery_receipt FROM `order` WHERE (delivery_receipt * 1 = 0) AND de
 11. Uncanceling an order does not update inventory correctly - fixed
 12. Clearing an order does not update inventory correctly - fixed
 13. Prevent form resubmissions
+14. Drop "new" word in menu - fixed
+15. Rename Tools menu to Admin menu
+16. Improve readability of Recent Activities
 
 
 
