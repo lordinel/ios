@@ -68,6 +68,7 @@ switch ( $_GET['data'] )
 	case 'supplier_list'	:	Supplier::exportListToExcel( $user->getUserID(), $_GET );               break;
 	case 'inventory_list'	:	Inventory::exportListToExcel( $user->getUserID(), $_GET );              break;
 	case 'agent_list'	    :	Agent::exportListToExcel( $user->getUserID() );                         break;
+	case 'daily_sales'      :   Report::exportDailySalesReportToExcel( $user->getUserID(), $_GET['report_date'] );     break;
 	case 'profit_calc'      :   Report::exportProfitReportToExcel( $user->getUserID(), $_GET );         break;
 	default					:	redirectToHomePage();
 }

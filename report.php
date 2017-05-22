@@ -293,7 +293,10 @@ $htmlLayout->paint(null, 'inlineScript');
 $htmlLayout->showMainMenu();
 if ($reportType == 'profit-calc') {
 	$htmlLayout->showPageHeading('profit.png');
-	Report::showListTasks();
+	Report::showListTasks($reportType);
+} elseif ($reportType == 'daily-sales') {
+	$htmlLayout->showPageHeading('report.png');
+	Report::showListTasks($reportType);
 } else {
 	$htmlLayout->showPageHeading('report.png', true);
 }
