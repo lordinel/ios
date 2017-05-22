@@ -7,8 +7,8 @@
 // ---------------------------------------------------------------------------------------------------------------
 class Order extends Transaction
 {
-	const MAX_ORDER_ITEMS     = 20;               // maximum number of order items
-	const VISIBLE_ORDER_ITEMS = 5;                // number of visible order items, must be less than MAX_ORDER_ITEMS
+	const MAX_ORDER_ITEMS     = 20;		// maximum number of order items
+	const VISIBLE_ORDER_ITEMS = 5;		// number of visible order items, must be less than MAX_ORDER_ITEMS
 	
 	
 	// -----------------------------------------------------------------------------------------------------------
@@ -68,16 +68,16 @@ class Order extends Transaction
 		echo '</form>';
 		
 		// call JavaScript functions for initialization
-		echo '<script type="text/javascript">';
-		echo "<!--\n";
+		echo "<script type=\"text/javascript\">\n" .
+			 "<!--\n";
 		
 		if ($customerID != null) {
-			// fill and lock customer fieldset
+			// fill and lock customer field set
 			echo "origPersonID = $customerID;\n" .
 				 "lockInputFields();\n" .
-				"$('#customer_query_mode').val('locked');\n" .
-				"$('#credit_limit').attr('disabled','disabled');\n" .
-				"$('#credit_terms').attr('disabled','disabled');\n";
+				 "$('#customer_query_mode').val('locked');\n" .
+				 "$('#credit_limit').attr('disabled','disabled');\n" .
+				 "$('#credit_terms').attr('disabled','disabled');\n";
 		}
 		
 		if ($isItemEditable) {
@@ -86,8 +86,8 @@ class Order extends Transaction
 				 "order.loadFormEvents();\n";
 		}
 		
-		echo '// -->';
-		echo '</script>';
+		echo "// -->\n" .
+			 '</script>';
 	}
 	
 	
@@ -123,33 +123,31 @@ class Order extends Transaction
 			} else {
 				echo dateFormatOutput($order['order_date']);
 			}
-		?></output>
-			<input type="hidden" name="order_query_mode" id="order_query_mode" value="<?php echo ($id != null ? 'edit' : 'new') ?>" />
-			<input type="hidden" name="order_id" id="order_id" value="<?php echo ($id != null ? $order['id'] : '0') ?>" />
+			?></output>
+			<input type="hidden" name="order_query_mode" id="order_query_mode" value="<?= ($id != null ? 'edit' : 'new') ?>" />
+			<input type="hidden" name="order_id" id="order_id" value="<?= ($id != null ? $order['id'] : '0') ?>" />
 		</div>
 				
 		<div>
 			<label for="invoice_type">Tracking No:</label>
 			<select name="invoice_type" id="invoice_type" class="form_input_select">
-				<option value="SI"<?php echo($id != null ? ($order['sales_invoice'] != null ? ' selected="selected"' : '')
-														   : '') ?>>Sales Invoice (SI)</option>
-				<option value="DR"<?php echo($id != null ? ($order['delivery_receipt'] != null ? ' selected="selected"' : '')
-														   : '') ?>>Delivery Receipt (DR)</option>
-				</select>
-				<input type="hidden" name="invoice_type_orig" id="invoice_type_orig" value="<?php
-					   echo ($id != null ? ($order['sales_invoice'] != null ? 'SI' : 'DR') : 'null') ?>" />
-			</div>
+				<option value="SI"<?= ($id != null ? ($order['sales_invoice'] != null ? ' selected="selected"' : '') : '') ?>>Sales Invoice (SI)</option>
+				<option value="DR"<?= ($id != null ? ($order['delivery_receipt'] != null ? ' selected="selected"' : '') : '') ?>>Delivery Receipt (DR)</option>
+			</select>
+			<input type="hidden" name="invoice_type_orig" id="invoice_type_orig" value="<?php
+				echo ($id != null ? ($order['sales_invoice'] != null ? 'SI' : 'DR') : 'null') ?>" />
+		</div>
 			
-			<div>
-				<label for="tracking_number"></label>
-				<input type="text" name="tracking_number" id="tracking_number" required="required"<?php
-					   echo ($id != null ? ' value="' . ($order['sales_invoice'] != null ? Filter::reinput($order['sales_invoice']) :
-							Filter::reinput($order['delivery_receipt'])) . '"' : '') ?> />
-				<input type="hidden" name="tracking_number_orig" id="tracking_number_orig" value="<?php
-					   echo ($id != null ? ($order['sales_invoice'] != null ? $order['sales_invoice'] : $order['delivery_receipt']) : 'null') ?>" />
-			</div>
+		<div>
+			<label for="tracking_number"></label>
+			<input type="text" name="tracking_number" id="tracking_number" required="required"<?php
+			   echo ($id != null ? ' value="' . ($order['sales_invoice'] != null ? Filter::reinput($order['sales_invoice']) :
+					Filter::reinput($order['delivery_receipt'])) . '"' : '') ?> />
+			<input type="hidden" name="tracking_number_orig" id="tracking_number_orig" value="<?php
+			   echo ($id != null ? ($order['sales_invoice'] != null ? $order['sales_invoice'] : $order['delivery_receipt']) : 'null') ?>" />
+		</div>
 		</section>
-
+		
         <?php
 		if (sizeof($GLOBALS['BUSINESS_UNITS']) > 0 || sizeof($GLOBALS['BRANCHES']) > 0) {
 			echo '<section>';
@@ -207,13 +205,12 @@ class Order extends Transaction
 			 '<label for="delivery_pickup_date" id="delivery_pickup_date_label" class="required_label">Target Delivery Date:</label>';
 		if ($order['delivery_pickup_actual_date'] == null) {
 			echo '<input type="text" name="delivery_pickup_date" id="delivery_pickup_date" class="datepicker" size="30" ' . 
-						'maxlength="30" required="required"' .
-						($id != null ? ' value="' . dateFormatOutput(Filter::reinput($order['delivery_pickup_target_date']), 'F j, Y, D') . '"' : '') .
-						"/>" .
+				 'maxlength="30" required="required"' .
+				 ($id != null ? ' value="' . dateFormatOutput(Filter::reinput($order['delivery_pickup_target_date']), 'F j, Y, D') . '"' : '') . '/>' .
 				 '<span class="span_label">Time:</span>' .
 				 '<select name="delivery_pickup_time" id="delivery_pickup_time">' .
 				 '<option value="0:00:00"' . ($id != null ? (dateFormatOutput($order['delivery_pickup_target_date'], 'G:i:s') == "0:00:00" ?
-											  ' selected="selected"' : '') : '') . '>----------&nbsp;&nbsp;</option>';
+				 ' selected="selected"' : '') : '') . '>----------&nbsp;&nbsp;</option>';
 			
 			// construct time selection
 			for ($i = WORKING_HOURS_START; $i <= WORKING_HOURS_END; $i++) {
@@ -243,8 +240,7 @@ class Order extends Transaction
 		} else {
 			echo '<output>' . dateFormatOutput($order['delivery_pickup_target_date']) .
 				 ($order['transaction_type'] == 'delivery' ? ' (Delivered: ' : ' (Picked-up: ') .
-				 dateFormatOutput($order['delivery_pickup_actual_date'], 'F j, Y, D') .
-				 ')</output>' .
+				 dateFormatOutput($order['delivery_pickup_actual_date'], 'F j, Y, D') . ')</output>' .
 				 '<input type="hidden" name="delivery_pickup_date" id="delivery_pickup_date" value="' .
 				 dateFormatOutput(Filter::reinput($order['delivery_pickup_target_date']), 'F j, Y, D') . '" />' .
 				 '<input type="hidden" name="delivery_pickup_time" id="delivery_pickup_time" value="' .
@@ -302,14 +298,11 @@ class Order extends Transaction
 			// display item row
 			if ($id != null && $i <= $itemCount) {
 				self::showItemListRow($id, $i, $visibleItems, $inventoryBrandID, $inventoryBrandName, $itemCount, $item[$i - 1], false);
-			} else {
-				self::showItemListRow(null, $i, $visibleItems, $inventoryBrandID, $inventoryBrandName, $itemCount, null, false);
-			}
-			
-			// perform item computation if existing order
-			if ($id != null && $i <= $itemCount) {
-				echo '<script type="text/javascript">';
-				echo "<!--\n";
+				
+				// perform item computation if existing order
+				echo "<script type=\"text/javascript\">\n" .
+					 "<!--\n";
+				
 				echo "order.inventory.loadSellingPriceAndStock($i, $('#item_model_$i').val(), '" . ($id != null ? $id : '0') . "');\n";
 				
 				$sidrSubtotal = numberFormat(((double) $item[$i - 1]['sidr_price'] * (int) $item[$i - 1]['quantity']), 'float', 3, '.', '', true);
@@ -319,9 +312,8 @@ class Order extends Transaction
 					 "order.validateItemModel($i, true);\n" .
 					 "$('#item_price_'+$i).val($('#item_price_'+$i).attr('defaultValue'));\n" .
 					 "$('#item_quantity_'+$i).val($('#item_quantity_'+$i).attr('defaultValue'));\n" .
-					 "if (parseInt($('#item_quantity_'+$i).val()) > parseInt($('#item_max_quantity_'+$i).val())) {\n" .
-					 "$('#item_quantity_'+$i).css('color', badInputStyle);\n" .
-					 "}\n" .
+					 "if (parseInt($('#item_quantity_'+$i).val()) > parseInt($('#item_max_quantity_'+$i).val())) { " .
+					 "$('#item_quantity_'+$i).css('color', badInputStyle); }\n" .
 					 "$('#item_sidr_price_'+$i).val($('#item_sidr_price_'+$i).attr('defaultValue'));\n" .
 					 "$('#item_net_price_'+$i).val($('#item_net_price_'+$i).attr('defaultValue'));\n" .
 					 "$('#item_sidr_subtotal_'+$i).val('$sidrSubtotal');\n" .
@@ -337,11 +329,13 @@ class Order extends Transaction
 						 "$('#item_net_price_'+$i).attr('disabled', 'disabled');\n";
 				}
 				
-				echo '// -->';
-				echo '</script>';
+				echo "// -->\n" .
+					 '</script>';
 				
 				$totalSidrAmount = $totalSidrAmount + $sidrSubtotal;
 				$totalNetAmount  = $totalNetAmount + $netSubtotal;
+			} else {
+				self::showItemListRow(null, $i, $visibleItems, $inventoryBrandID, $inventoryBrandName, $itemCount, null, false);
 			}
 		}
 		
@@ -494,10 +488,10 @@ class Order extends Transaction
 			$this->payment->saveSchedule(self::$database, $this->getInstanceClassName($this), $this->id, $this->paymentTerm);
 			
 			// get customer name to log
-			$resultSet = self::$database->query("SELECT name FROM customer WHERE id=$customerID");
-			$customer  = self::$database->getResultRow($resultSet);
+			$resultSet   = self::$database->query("SELECT name FROM customer WHERE id = $customerID");
+			$customer    = self::$database->getResultRow($resultSet);
 			$orderNumber = $this->id;
-			if ($this->salesInvoice != "NULL") {
+			if ($this->salesInvoice != 'NULL') {
 				$invoiceNumber = 'SI ' . Filter::input($_POST['tracking_number']);
 			} else {
 				$invoiceNumber = 'DR ' . Filter::input($_POST['tracking_number']);
@@ -511,7 +505,7 @@ class Order extends Transaction
 							   capitalizeWords(Filter::output($customer['name'])) . '</a>');
 			
 		} else {
-			// existing order, update records
+			// existing order; update records
 			$this->id = $_POST['order_id'];
 			
 			// update order
@@ -538,8 +532,7 @@ class Order extends Transaction
 							"waived_balance=0.000," .                                                         		// waived_balance, reset to 0.00
 							"agent_id=" . ($this->agentID == null ? "NULL," : "$this->agentID,") .          		// agent_id
 							"remarks=" . ($this->remarks == null ? "NULL" : "'$this->remarks'") .     				// remarks
-							" WHERE id=" . $this->id;
-				
+							" WHERE id=$this->id";
 			} else {
 				$sqlQuery = "UPDATE `order` SET " .
 							"sales_invoice=$this->salesInvoice," .                                    				// sales_invoice
@@ -549,8 +542,7 @@ class Order extends Transaction
 							"branch=" . ($this->branch == null ? "NULL," : "'$this->branch',") .  					// branch
 							"agent_id=" . ($this->agentID == null ? "NULL," : "$this->agentID,") .          		// agent_id
 							"remarks=" . ($this->remarks == null ? "NULL" : "'$this->remarks'") .     				// remarks
-							" WHERE id=" . $this->id;
-				
+							" WHERE id=$this->id";
 			}
 			
 			self::$database->query($sqlQuery);
@@ -563,8 +555,9 @@ class Order extends Transaction
 			}
 			
 			// get customer name to log
-			$resultSet = self::$database->query("SELECT name FROM customer WHERE id=$customerID");
+			$resultSet = self::$database->query("SELECT name FROM customer WHERE id = $customerID");
 			$customer  = self::$database->getResultRow($resultSet);
+			
 			if ($this->salesInvoice != "NULL") {
 				$invoiceNumber = 'SI ' . Filter::input($_POST['tracking_number']);
 			} else {

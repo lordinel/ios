@@ -52,7 +52,7 @@ $htmlLayout->showPageHeading('about.png', true);
 					<h3>About This Release</h3>
 					
 					<div><?php echo PROG_NAME . ' ' . VERSION ?> is based on the Worldwide Web platform utilizing the latest Web technologies available as of 
-							this writing such as HTML version 5, CSS version 3, PHP version 5.5.12, MySQL RDBMS version 5.6.17, and Apache 2.4.9. Please visit 
+							this writing such as HTML version 5, CSS version 3, PHP version 5.6.25, MySQL RDBMS version 5.7.14, and Apache 2.4.23. Please visit 
 							our <a href="issues.php">known issues</a> and <a href="buglist.php">bug list</a> for more information and support notes about this 
 							release. For any comments or suggestions, or to report errors, please send us your <a href="feedback.php">feedback</a>.<br /><br />
 					</div>

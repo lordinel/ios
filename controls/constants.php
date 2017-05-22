@@ -4,15 +4,15 @@
 // program info
 define( "PROG_NAME", 	  "IOS" );								// application name
 define( "PROG_NAME_LONG", "Inventory and Ordering System" );	// application name (long format)
-define( "VERSION", 		  "4.10" );							    // application version number
-define( "BUILD", 		  "201704252330" );						// application build number
+define( "VERSION", 		  "4.12" );							    // application version number
+define( "BUILD", 		  "201705160210" );						// application build number
 define( "YEAR", 		  "2017" );								// year of copyright
 define( "CODENAME", 	  "Chakra" );							// project codename
 define( "COMPANY", 		  "Chakra Development Group" );			// developer
 
 // database management system info
 define( "DBMS_NAME",    "MySQL" );								// name of database management system
-define( "DBMS_VERSION", "5.6.12" );								// version of database management system
+define( "DBMS_VERSION", "5.6.17" );								// version of database management system
 
 // database server settings
 define( "DATABASE_SERVER", "localhost" );						// database server

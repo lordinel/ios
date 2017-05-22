@@ -322,7 +322,7 @@ abstract class Transaction extends Layout
 
 		if ( $_POST[$class.'_query_mode'] == "edit" ) {
 			// update reserved_stock
-			if ($class == "order") {
+			if ($class == 'order') {
 				$sqlQuery = "SELECT inventory_id, SUM(quantity) AS quantity FROM ".$class."_item ".
 							"WHERE ".$class."_id = ".$this->id." GROUP BY inventory_id";
 				$resultSet = self::$database->query($sqlQuery);
@@ -1400,18 +1400,27 @@ class="bad">' . CURRENCY . ' 0.000</span>.<br />' .
 		
 		
 		// update active orders to point to child model
-		$sqlQuery = "UPDATE v_active_order_items SET inventory_id = " . $childEntryID .
-					" WHERE inventory_id = " . $parentInventory['id'];
+		// MYSQL BUG: The target table of the update is not updatable
+		//$sqlQuery = "UPDATE v_active_order_items SET inventory_id = " . $childEntryID .
+		//			" WHERE inventory_id = " . $parentInventory['id'];
+		$sqlQuery = "UPDATE order_item LEFT JOIN `order` ON (order_item.order_id = `order`.id) " .
+					"SET order_item.inventory_id = $childEntryID " .
+					"WHERE ISNULL(`order`.canceled_date) AND ISNULL(`order`.cleared_date) AND order_item.inventory_id = {$parentInventory['id']}";
 		self::$database->query( $sqlQuery );
 		
 		// update active purchases, except currently opened purchase order, to point to child model
-		$sqlQuery = "UPDATE v_active_purchase_items SET inventory_id = " . $childEntryID .
-					" WHERE inventory_id = " . $parentInventory['id'] . " AND purchase_id != " . $purchaseID;
+		// MYSQL BUG: The target table of the update is not updatable
+		//$sqlQuery = "UPDATE v_active_purchase_items SET inventory_id = " . $childEntryID .
+		//			" WHERE inventory_id = " . $parentInventory['id'] . " AND purchase_id != " . $purchaseID;
+		$sqlQuery = "UPDATE purchase_item LEFT JOIN purchase ON (purchase_item.purchase_id = purchase.id) " .
+					"SET purchase_item.inventory_id = $childEntryID " .
+					"WHERE ISNULL(purchase.canceled_date) AND ISNULL(purchase.cleared_date) " .
+					"AND purchase_item.purchase_id != $purchaseID AND purchase_item.inventory_id = {$parentInventory['id']}";
 		self::$database->query( $sqlQuery );
 		
 		// update currently opened purchase to point to parent model
-		$sqlQuery = "UPDATE purchase_item SET inventory_id = " . $parentInventory['id'] .
-					" WHERE purchase_id = " . $purchaseID . " AND id = " . $itemID;
+		$sqlQuery = "UPDATE purchase_item SET inventory_id = {$parentInventory['id']} " .
+					"WHERE purchase_id = $purchaseID AND id = $itemID";
 		self::$database->query( $sqlQuery );
 		
 		
