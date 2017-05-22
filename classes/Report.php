@@ -443,7 +443,8 @@ class Report extends Layout
 
 		// write data
 		$activeSheet->setCellValue( 'A6', 'Banks' );
-
+		
+		$paramArray = array();
 		$activeSheet->setCellValue( 'A7',  $paramArray['bank_name_1'] );
 		$activeSheet->setCellValue( 'A8',  $paramArray['bank_name_2'] );
 		$activeSheet->setCellValue( 'A9',  $paramArray['bank_name_3'] );
