@@ -263,14 +263,15 @@ class Report extends Layout
 			// perform query
 			$sqlQuery  = "SELECT `order`.id, " .
 						 "IF(sales_invoice IS NOT NULL,CONCAT('SI ',sales_invoice),CONCAT('DR ',delivery_receipt)) AS tracking_number, " .
-						 "customer.id AS customer_id, customer.name AS customer " .
+						 "customer.id AS customer_id, customer.name AS customer, " .
+						 "order_item.quantity, order_item.sidr_price, order_item.net_price, " .
+						 "inventory_brand.name AS brand, inventory.model " .
 						 "FROM `order` " .
 						 "INNER JOIN customer ON `order`.customer_id = customer.id " .
 						 "INNER JOIN order_item ON `order`.id = order_item.order_id " .
 						 "INNER JOIN inventory ON order_item.inventory_id = inventory.id " .
 						 "INNER JOIN inventory_brand ON inventory.brand_id = inventory_brand.id " .
 						 "WHERE DATE_FORMAT(`order`.delivery_pickup_actual_date,'%Y-%m-%d') = '$date' AND $condition " .
-						 "GROUP BY `order`.id " .
 						 "ORDER BY `order`.id ASC";
 			$resultSet = self::$database->query($sqlQuery);
 			if (self::$database->getResultCount($resultSet) == 0) {
@@ -285,55 +286,37 @@ class Report extends Layout
 				 '<th id="net_amount">Net Amount<br /><span class="subheader">(Net Price x Qty)</span></th>' .
 				 '</tr></thead><tbody>';
 			
-			$orderList = array();
-			while ($order = self::$database->getResultRow($resultSet)) {
-				array_push($orderList, $order);
-			}
-			
 			$totalQuantity  = 0;
 			$totalNetAmount = 0;
+			$prevOrderId    = null;
 			
-			foreach ($orderList as $order) {
-				$sqlQuery  = "SELECT quantity, inventory_brand.name AS brand, inventory.model, " .
-							 "sidr_price, net_price " .
-							 "FROM order_item " .
-							 "INNER JOIN `order` ON order_item.order_id = `order`.id " .
-							 "INNER JOIN inventory ON order_item.inventory_id = inventory.id " .
-							 "INNER JOIN inventory_brand ON inventory.brand_id = inventory_brand.id " .
-							 "WHERE order_item.order_id = {$order['id']} AND $condition";
-				$resultSet = self::$database->query($sqlQuery);
-				if (!$resultSet) {
-					continue;
+			while ($order = self::$database->getResultRow($resultSet)) {
+				echo '<tr class="item_row">';
+				
+				if ($order['id'] != $prevOrderId) {
+					echo '<td><a href="view_order_details.php?id=' . $order['id'] . '">' . $order['id'] . '</a></td>' .
+						 '<td>' . $order['tracking_number'] . '</td>' .
+					     '<td><a href="view_customer_details.php?id=' . $order['customer_id'] . '">' .
+						 capitalizeWords(Filter::output($order['customer'])) . '</a></td>';
+				} else {
+					echo '<td></td><td></td><td></td>';
 				}
 				
-				$firstRow = true;
-				while ($orderItem = self::$database->getResultRow($resultSet)) {
-					echo '<tr class="item_row">';
-					
-					if ($firstRow) {
-						echo '<td><a href="view_order_details.php?id=' . $order['id'] . '">' . $order['id'] . '</a></td>' .
-							 '<td>' . $order['tracking_number'] . '</td>' .
-						     '<td><a href="view_customer_details.php?id=' . $order['customer_id'] . '">' .
-							 capitalizeWords(Filter::output($order['customer'])) . '</a></td>';
-						$firstRow = false;
-					} else {
-						echo '<td></td><td></td><td></td>';
-					}
-					
-					$totalQuantity = $totalQuantity + $orderItem['quantity'];
-					
-					echo '<td class="number"><span>' . numberFormat($orderItem['quantity'], 'int') . '</span></td>' .
-						 '<td>' . capitalizeWords(Filter::output($orderItem['brand'])) . '</td>' .
-						 '<td>' . capitalizeWords(Filter::output($orderItem['model'])) . '</td>' .
-						 '<td class="number"><span>' . numberFormat($orderItem['sidr_price'], "float") . '</span></td>' .
-						 '<td class="number"><span>' . numberFormat($orderItem['net_price'], "float") . '</span></td>';
-					
-					$netAmount      = $orderItem['net_price'] * $orderItem['quantity'];
-					$totalNetAmount = $totalNetAmount + $netAmount;
-					
-					echo '<td class="number"><span>' . numberFormat($netAmount, "float") . '</span></td>';
-					echo '</tr>';
-				}
+				$totalQuantity = $totalQuantity + $order['quantity'];
+				
+				echo '<td class="number"><span>' . numberFormat($order['quantity'], 'int') . '</span></td>' .
+					 '<td>' . capitalizeWords(Filter::output($order['brand'])) . '</td>' .
+					 '<td>' . capitalizeWords(Filter::output($order['model'])) . '</td>' .
+					 '<td class="number"><span>' . numberFormat($order['sidr_price'], "float") . '</span></td>' .
+					 '<td class="number"><span>' . numberFormat($order['net_price'], "float") . '</span></td>';
+				
+				$netAmount      = $order['net_price'] * $order['quantity'];
+				$totalNetAmount = $totalNetAmount + $netAmount;
+				
+				echo '<td class="number"><span>' . numberFormat($netAmount, "float") . '</span></td>';
+				echo '</tr>';
+				
+				$prevOrderId = $order['id'];
 			}
 			
 			$totalNetAmount = numberFormat($totalNetAmount, 'float');
@@ -347,203 +330,207 @@ class Report extends Layout
 		}
 	}
 	
-	// export to excel
-	public static function exportDailySalesReportToExcel( $username, $reportDateParam )
-	{
+	
+	//------------------------------------------------------------------------------------------------------------
+	// save daily sales report to excel file
+	//------------------------------------------------------------------------------------------------------------
+	public static function exportDailySalesReportToExcel( $username, $reportDateParam ) {
 		$sheetTitle = 'Daily Sales Report';
-		$fileTimeStampExtension = date( EXCEL_FILE_TIMESTAMP_FORMAT );
-		$headingTimeStamp = dateFormatOutput( $fileTimeStampExtension, EXCEL_HEADING_TIMESTAMP_FORMAT, EXCEL_FILE_TIMESTAMP_FORMAT );
-		$reportDateTmp = new DateTime( $reportDateParam );
-		$reportDate = $reportDateTmp->format( 'Y-m-d' );
-
+		$reportDateTmp = new DateTime($reportDateParam);
+		$reportDate = $reportDateTmp->format('Y-m-d');
+		$fileTimeStampExtension = $reportDate;
+		$headingTimeStamp = dateFormatOutput($fileTimeStampExtension, 'F d, Y', 'Y-m-d');
+		
+		require_once('classes/Filter.php');
+		
 		self::$database = new Database();
 		
-		require_once( "classes/Filter.php" );
-
 		// import PHPExcel library
 		require_once( 'libraries/phpexcel/PHPExcel.php' );
-
+		
 		// instantiate formatting variables
 		$backgroundColor = new PHPExcel_Style_Color();
 		$fontColor 		 = new PHPExcel_Style_Color();
-
+		
 		// color-specific variables
-		$fontColorRed	 	= new PHPExcel_Style_Color();
-		$fontColorRed->setRGB( 'FF0000' );
-		$fontColorDarkRed	= new PHPExcel_Style_Color();
-		$fontColorDarkRed->setRGB( 'CC0000' );
-		$fontColorGreen	 	= new PHPExcel_Style_Color();
-		$fontColorGreen->setRGB( '00CC00' );
-		$fontColorGray	 	= new PHPExcel_Style_Color();
-		$fontColorGray->setRGB( '999999' );
+		$fontColorRed	  = new PHPExcel_Style_Color(); $fontColorRed->setRGB('FF0000');
+		$fontColorDarkRed = new PHPExcel_Style_Color(); $fontColorDarkRed->setRGB('CC0000');
+		$fontColorGreen	  = new PHPExcel_Style_Color(); $fontColorGreen->setRGB('00CC00');
+		$fontColorGray	  = new PHPExcel_Style_Color(); $fontColorGray->setRGB('999999');
 
 		// set value binder
-		PHPExcel_Cell::setValueBinder( new PHPExcel_Cell_AdvancedValueBinder() );
-
+		PHPExcel_Cell::setValueBinder(new PHPExcel_Cell_AdvancedValueBinder());
+		
 		// create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
-
+		
 		// set file properties
 		$objPHPExcel->getProperties()
-					->setCreator( $username )
-					->setLastModifiedBy( $username )
-					->setTitle( $sheetTitle . ' as of ' . $headingTimeStamp )
-					->setSubject( EXCEL_FILE_SUBJECT )
-					->setDescription( EXCEL_FILE_DESCRIPTION )
-					->setKeywords( EXCEL_FILE_KEYWORDS )
-					->setCategory( EXCEL_FILE_CATEGORY );
-
+					->setCreator($username)
+					->setLastModifiedBy($username)
+					->setTitle("$sheetTitle - $headingTimeStamp")
+					->setSubject(EXCEL_FILE_SUBJECT)
+					->setDescription(EXCEL_FILE_DESCRIPTION)
+					->setKeywords(EXCEL_FILE_KEYWORDS)
+					->setCategory(EXCEL_FILE_CATEGORY);
+		
+		
 		// create a first sheet
 		$objPHPExcel->setActiveSheetIndex(0);
 		$activeSheet = $objPHPExcel->getActiveSheet();
-
-		// rename present sheet
-		$activeSheet->setTitle( $sheetTitle );
-
-		// set default font
-		$activeSheet->getDefaultStyle()->getFont()->setName( EXCEL_DEFAULT_FONT_NAME )
-												  ->setSize( EXCEL_DEFAULT_FONT_SIZE );
-
-		// write sheet headers
-		$activeSheet->setCellValue( 'A1', CLIENT );
-		$activeSheet->setCellValue( 'A2', $sheetTitle );
-		$activeSheet->setCellValue( 'A3', 'As of ' . $headingTimeStamp );
-
-		// format sheet headers
-		$backgroundColor->setRGB( EXCEL_HEADER_BACKGROUND_COLOR );
-		$activeSheet->getStyle( 'A1:C4' )->getFill()->setFillType( PHPExcel_Style_Fill::FILL_SOLID );
-		$activeSheet->getStyle( 'A1:C4' )->getFill()->setStartColor( $backgroundColor );
-		$activeSheet->getStyle( 'A1:C2' )->getFont()->setBold( true );
-		$activeSheet->getStyle( 'A1:C3' )->getFont()->setName( EXCEL_HEADER_FONT_NAME );
-		$activeSheet->getStyle( 'A1' )->getFont()->setColor( $fontColorRed );
-		$activeSheet->getStyle( 'A1' )->getFont()->setSize( EXCEL_HEADER1_FONT_SIZE );
-		$activeSheet->getStyle( 'A2' )->getFont()->setSize( EXCEL_HEADER2_FONT_SIZE );
-		$activeSheet->getStyle( 'A3' )->getFont()->setSize( EXCEL_HEADER2_FONT_SIZE );
-
-		// write column headers
-		$activeSheet->setCellValue( 'B5', 'Amounts in (' . CURRENCY . ')' );
-
-		// set column widths
-		$activeSheet->getColumnDimension( 'A' )->setWidth( 30 );
-		$activeSheet->getColumnDimension( 'B' )->setWidth( 20 );
-		$activeSheet->getColumnDimension( 'C' )->setWidth( 20 );
-
-		// format column headers
-		$fontColor->setRGB( EXCEL_COLUMN_HEADER_FONT_COLOR );
-		$backgroundColor->setRGB( EXCEL_COLUMN_HEADER_BACKGROUND_COLOR );
-		$activeSheet->getStyle( 'A5:C5' )->getFill()->setFillType( PHPExcel_Style_Fill::FILL_SOLID );
-		$activeSheet->getStyle( 'A5:C5' )->getFill()->setStartColor( $backgroundColor );
-		$activeSheet->getStyle( 'A5:C5' )->getFont()->setColor( $fontColor );
-		$activeSheet->getStyle( 'A5:C5' )->getFont()->setBold( true );
-		$activeSheet->getStyle( 'A5:C5' )->getAlignment()->setWrapText( true );
-
-		// freeze pane
-		$activeSheet->freezePane( 'A6' );
-
-
-		// write data
-		$activeSheet->setCellValue( 'A6', 'Banks' );
 		
-		$paramArray = array();
-		$activeSheet->setCellValue( 'A7',  $paramArray['bank_name_1'] );
-		$activeSheet->setCellValue( 'A8',  $paramArray['bank_name_2'] );
-		$activeSheet->setCellValue( 'A9',  $paramArray['bank_name_3'] );
-		$activeSheet->setCellValue( 'A10', $paramArray['bank_name_4'] );
-		$activeSheet->setCellValue( 'A11', $paramArray['bank_name_5'] );
-
-		$activeSheet->setCellValue( 'B7',  $paramArray['bank_amount_1'] );
-		$activeSheet->setCellValue( 'B8',  $paramArray['bank_amount_2'] );
-		$activeSheet->setCellValue( 'B9',  $paramArray['bank_amount_3'] );
-		$activeSheet->setCellValue( 'B10', $paramArray['bank_amount_4'] );
-		$activeSheet->setCellValue( 'B11', $paramArray['bank_amount_5'] );
-
-		$activeSheet->setCellValue( 'A13', 'Bank Total' );
-		$activeSheet->setCellValue( 'B13', '=SUM(B7:B11)' );
-
-		$activeSheet->setCellValue( 'A14', 'Amount Receivable' );
-		$activeSheet->setCellValue( 'B14', str_replace( ",", "", $paramArray['amount_receivable'] ) );
-
-		$activeSheet->setCellValue( 'A15', 'PDC Receivable' );
-		$activeSheet->setCellValue( 'B15', str_replace( ",", "", $paramArray['pdc_receivable'] ) );
-
-		$activeSheet->setCellValue( 'A16', 'Inventory Amount' );
-		$activeSheet->setCellValue( 'B16', str_replace( ",", "", $paramArray['inventory_amount'] ) );
-
-		$activeSheet->setCellValue( 'C17', '=SUM(B13:B16)' );
-
-		$activeSheet->setCellValue( 'A19', 'Amount Payable' );
-		$activeSheet->setCellValue( 'B19', str_replace( ",", "", $paramArray['amount_payable'] ) );
-
-		$activeSheet->setCellValue( 'A20', 'PDC Payable' );
-		$activeSheet->setCellValue( 'B20', str_replace( ",", "", $paramArray['pdc_payable'] ) );
-
-		$activeSheet->setCellValue( 'A21', 'Rebate Payable' );
-		$activeSheet->setCellValue( 'B21', str_replace( ",", "", $paramArray['rebate_payable'] ) );
-
-		$activeSheet->setCellValue( 'A22', 'PDC Rebate Payable' );
-		$activeSheet->setCellValue( 'B22', str_replace( ",", "", $paramArray['pdc_rebate'] ) );
-
-		$activeSheet->setCellValue( 'A23', 'Other Expenses' );
-		$activeSheet->setCellValue( 'B23', str_replace( ",", "", $paramArray['other_expenses'] ) );
-
-		$activeSheet->setCellValue( 'A24', 'Capital' );
-		$activeSheet->setCellValue( 'B24', str_replace( ",", "", $paramArray['capital'] ) );
-
-		$activeSheet->setCellValue( 'C25', '=SUM(B19:B24)' );
-
-		$activeSheet->setCellValue( 'A27', 'Profit' );
-		$activeSheet->setCellValue( 'C27', '=C17-C25' );
-
-
+		// rename present sheet
+		$activeSheet->setTitle('OFFICE');
+		
+		// set default font
+		$activeSheet->getDefaultStyle()->getFont()->setName(EXCEL_DEFAULT_FONT_NAME)
+												  ->setSize(EXCEL_DEFAULT_FONT_SIZE);
+		
+		
+		// write sheet headers
+		$activeSheet->setCellValue('A1', CLIENT);
+		$activeSheet->setCellValue('A2', $sheetTitle);
+		
+		// format sheet headers
+		$backgroundColor->setRGB(EXCEL_HEADER_BACKGROUND_COLOR);
+		$activeSheet->getStyle('A1:O3')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$activeSheet->getStyle('A1:O3')->getFill()->setStartColor($backgroundColor);
+		$activeSheet->getStyle('A1:O2')->getFont()->setBold(true);
+		$activeSheet->getStyle('A1:O3')->getFont()->setName(EXCEL_HEADER_FONT_NAME);
+		$activeSheet->getStyle('A1')->getFont()->setColor($fontColorRed);
+		$activeSheet->getStyle('A1')->getFont()->setSize(EXCEL_HEADER1_FONT_SIZE);
+		$activeSheet->getStyle('A2')->getFont()->setSize(EXCEL_HEADER2_FONT_SIZE);
+		
+		// write column headers
+		$activeSheet->setCellValue('A4', 'Date');
+		$activeSheet->setCellValue('B4', 'Customer');
+		$activeSheet->setCellValue('C4', 'D.R./S.I.');
+		$activeSheet->setCellValue('D4', 'Gross');
+		$activeSheet->setCellValue('E4', 'Cost');
+		$activeSheet->setCellValue('F4', 'Rebate');
+		$activeSheet->setCellValue('G4', 'Quantity');
+		$activeSheet->setCellValue('H4', 'Unit');
+		$activeSheet->setCellValue('I4', 'Particulars');
+		$activeSheet->setCellValue('J4', 'Supplier');
+		$activeSheet->setCellValue('K4', 'Discount');
+		$activeSheet->setCellValue('L4', 'Selling');
+		$activeSheet->setCellValue('M4', 'Total');
+		$activeSheet->setCellValue('N4', 'Agent');
+		$activeSheet->setCellValue('O4', 'Remarks');
+		
+		// set column widths
+		$activeSheet->getColumnDimension('A')->setWidth(10);
+		$activeSheet->getColumnDimension('B')->setWidth(50);
+		$activeSheet->getColumnDimension('C')->setWidth(15);
+		$activeSheet->getColumnDimension('D')->setWidth(12);
+		$activeSheet->getColumnDimension('E')->setWidth(12);
+		$activeSheet->getColumnDimension('F')->setWidth(12);
+		$activeSheet->getColumnDimension('G')->setWidth(8);
+		$activeSheet->getColumnDimension('H')->setWidth(5);
+		$activeSheet->getColumnDimension('I')->setWidth(50);
+		$activeSheet->getColumnDimension('J')->setWidth(30);
+		$activeSheet->getColumnDimension('K')->setWidth(10);
+		$activeSheet->getColumnDimension('L')->setWidth(12);
+		$activeSheet->getColumnDimension('M')->setWidth(15);
+		$activeSheet->getColumnDimension('N')->setWidth(20);
+		$activeSheet->getColumnDimension('O')->setWidth(20);
+		
+		// format column headers
+		$fontColor->setRGB(EXCEL_COLUMN_HEADER_FONT_COLOR);
+		$backgroundColor->setRGB(EXCEL_COLUMN_HEADER_BACKGROUND_COLOR);
+		$activeSheet->getStyle('A4:O4')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$activeSheet->getStyle('A4:O4')->getFill()->setStartColor($backgroundColor);
+		$activeSheet->getStyle('A4:O4')->getFont()->setColor($fontColor);
+		$activeSheet->getStyle('A4:O4')->getFont()->setBold(true);
+		$activeSheet->getStyle('A4:O4')->getAlignment()->setWrapText(true);
+		
+		// freeze pane
+		$activeSheet->freezePane('A5');
+		$row = 5;
+		
+		$sqlQuery  = "SELECT `order`.id, " .
+					 "IF(sales_invoice IS NOT NULL,CONCAT('SI ',sales_invoice),CONCAT('DR ',delivery_receipt)) AS tracking_number, " .
+					 "customer.id AS customer_id, customer.name AS customer, " .
+					 "agent.name AS agent, " .
+					 "order_item.quantity, order_item.sidr_price, order_item.net_price, " .
+					 "inventory_brand.name AS brand, inventory.model, inventory.selling_price, inventory.purchase_price " .
+					 "FROM `order` " .
+					 "INNER JOIN customer ON `order`.customer_id = customer.id " .
+					 "INNER JOIN agent ON `order`.agent_id = agent.id " .
+					 "INNER JOIN order_item ON `order`.id = order_item.order_id " .
+					 "INNER JOIN inventory ON order_item.inventory_id = inventory.id " .
+					 "INNER JOIN inventory_brand ON inventory.brand_id = inventory_brand.id " .
+					 "WHERE DATE_FORMAT(`order`.delivery_pickup_actual_date,'%Y-%m-%d') = '$reportDate' " . 
+					 "ORDER BY `order`.id ASC";
+		$resultSet = self::$database->query($sqlQuery);
+		if (self::$database->getResultCount($resultSet) > 0) {
+			$prevOrderId = null;
+			
+			$activeSheet->setCellValue('A5',$reportDate);
+			
+			while ($order = self::$database->getResultRow($resultSet)) {
+				if ($order['id'] != $prevOrderId) {
+					$activeSheet->setCellValue('B'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['customer']))));
+					$activeSheet->setCellValue('C'.$row, $order['tracking_number']);
+					if ($order['balance'] < 0) {
+						$activeSheet->setCellValue('F'.$row, abs($order['balance']));
+					}
+					$activeSheet->setCellValue('N'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['agent']))));
+					$activeSheet->setCellValue('O'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['remarks']))));
+					
+					$backgroundColor->setRGB('FFFF00');
+					$activeSheet->getStyle('A'.$row.':O'.$row)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+					$activeSheet->getStyle('A'.$row.':O'.$row)->getFill()->setStartColor($backgroundColor);
+				}
+				
+				$activeSheet->setCellValue('D'.$row, $order['selling_price']);
+				$activeSheet->setCellValue('E'.$row, $order['purchase_price']);
+				$activeSheet->setCellValue('G'.$row, $order['quantity']);
+				$activeSheet->setCellValue('H'.$row, 'pcs');
+				$activeSheet->setCellValue('I'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['brand']))) . ' -- ' .
+													 html_entity_decode(capitalizeWords(Filter::reinput($order['model']))));
+				$activeSheet->setCellValue('J'.$row, 'STOCK');
+				$activeSheet->setCellValue('K'.$row, 'FIX');
+				$activeSheet->setCellValue('L'.$row, $order['net_price']);
+				$activeSheet->setCellValue('M'.$row, '=L'.$row.'*G'.$row);
+				
+				$row++;
+				$prevOrderId = $order['id'];
+			}
+		}
+		
+		$row++;
+		$activeSheet->setCellValue('L'.$row, 'TOTAL:');
+		$activeSheet->setCellValue('M'.$row, '=SUM(M5:M'.($row-2).')');
+		
+		
 		// post formatting
-		$activeSheet->getStyle( 'A6:A27' )->getAlignment()->setWrapText( true );
-		$activeSheet->getStyle( 'A6' )->getFont()->setBold( true );
-		$activeSheet->getStyle( 'A13:A27' )->getFont()->setBold( true );
-		$activeSheet->getStyle( 'C6:C27' )->getFont()->setBold( true );
-		$activeSheet->getStyle( 'B6:C26' )->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
-
-
-		// conditional formatting
-		// * set green for net profit, red for net loss
-		$conditionalStyles = $activeSheet->getStyle( 'C27' )->getConditionalStyles();
-
-		$objConditional1 = new PHPExcel_Style_Conditional();
-		$objConditional1->setConditionType( PHPExcel_Style_Conditional::CONDITION_CELLIS );
-		$objConditional1->setOperatorType( PHPExcel_Style_Conditional::OPERATOR_GREATERTHAN );
-		$objConditional1->addCondition( '0' );
-		$objConditional1->getStyle()->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
-		$objConditional1->getStyle()->getFont()->setColor( $fontColorGreen );
-
-		array_push( $conditionalStyles, $objConditional1 );
-
-		$objConditional2 = new PHPExcel_Style_Conditional();
-		$objConditional2->setConditionType( PHPExcel_Style_Conditional::CONDITION_CELLIS );
-		$objConditional2->setOperatorType( PHPExcel_Style_Conditional::OPERATOR_LESSTHANOREQUAL );
-		$objConditional2->addCondition( '0' );
-		$objConditional2->getStyle()->getNumberFormat()->setFormatCode( EXCEL_CURRENCY_FORMAT );
-		$objConditional2->getStyle()->getFont()->setColor( $fontColorRed );
-
-		array_push( $conditionalStyles, $objConditional2 );
-
-		$activeSheet->getStyle( 'C27' )->setConditionalStyles( $conditionalStyles );
-
-
+		$activeSheet->getStyle('A5:A'.$row)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);
+		$activeSheet->getStyle('B5:B'.$row)->getAlignment()->setWrapText(true);
+		$activeSheet->getStyle('C5:F'.$row)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
+		$activeSheet->getStyle('G5:G'.$row)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);
+		$activeSheet->getStyle('I5:J'.$row)->getAlignment()->setWrapText(true);
+		$activeSheet->getStyle('L5:M'.$row)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
+		$activeSheet->getStyle('M5:M'.$row)->getFont()->setBold(true);
+		$activeSheet->getStyle('N5:N'.$row)->getAlignment()->setWrapText(true);
+		
 		// format totals
+		$activeSheet->getStyle('L'.$row)->getFont()->setBold(true);
 		$styleArray = array(
 			'borders' => array(
-				'top' => array( 'style' => PHPExcel_Style_Border::BORDER_THICK )
+				'top' => array('style' => PHPExcel_Style_Border::BORDER_THICK)
 			)
 		);
-		$activeSheet->getStyle( 'A27:C27' )->applyFromArray( $styleArray );
-		$activeSheet->getStyle( 'A27' )->getFont()->setColor( $fontColorRed );
-
-
+		$activeSheet->getStyle('A'.$row.':O'.$row)->applyFromArray($styleArray);
+		$activeSheet->getStyle('A'.$row.':O'.$row)->getFont()->setColor($fontColorRed);
+		
+		
 		// set active sheet index to the first sheet, so Excel opens this as the first sheet
 		$objPHPExcel->setActiveSheetIndex( 0 );
 
 		// redirect output to a client�s web browser (Excel2007)
 		header( 'Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' );
-		header( 'Content-Disposition: attachment;filename="'.CLIENT.' - Profit Report - as of '.$fileTimeStampExtension.'.xlsx"' );
+		header( 'Content-Disposition: attachment;filename="'.CLIENT.' - Daily Sales Report - '.$fileTimeStampExtension.'.xlsx"' );
 		header( 'Cache-Control: max-age=0' );
 
 		$objWriter = PHPExcel_IOFactory::createWriter( $objPHPExcel, 'Excel2007' );
@@ -2211,8 +2198,7 @@ class Report extends Layout
 		<script type="text/javascript">
 		<!--
 			function getDailySalesData() {
-				alert('Export of Daily Sales coming soon!');
-				//exportToExcelConfirm('data=daily_sales&report_date=' + $('#date').val() );
+				exportToExcelConfirm('data=daily_sales&report_date=' + $('#date').val() );
 			}
 			
 			function getProfitCalcData() {
@@ -2388,7 +2374,7 @@ class Report extends Layout
 	
 	
 	//------------------------------------------------------------------------------------------------------------
-	// save profile report to excel file
+	// save profit report to excel file
 	//------------------------------------------------------------------------------------------------------------
 	public static function exportProfitReportToExcel( $username, $paramArray ) {
 		$fileTimeStampExtension = date(EXCEL_FILE_TIMESTAMP_FORMAT);
