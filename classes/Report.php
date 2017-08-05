@@ -446,14 +446,20 @@ class Report extends Layout
 		
 		// freeze pane
 		$activeSheet->freezePane('A5');
+		
 		$row = 5;
+		$agentList = [];
+		$agentTotalsCells = [];
+		$brandList = [];
+		$brandTotalsCells = [];
 		
 		$sqlQuery  = "SELECT `order`.id, " .
 					 "IF(sales_invoice IS NOT NULL,CONCAT('SI ',sales_invoice),CONCAT('DR ',delivery_receipt)) AS tracking_number, " .
 					 "customer.id AS customer_id, customer.name AS customer, " .
 					 "agent.name AS agent, " .
 					 "order_item.quantity, order_item.sidr_price, order_item.net_price, " .
-					 "inventory_brand.name AS brand, inventory.model, inventory.selling_price, inventory.purchase_price " .
+					 "inventory_brand.name AS brand, inventory.model, inventory.selling_price, inventory.purchase_price, " .
+					 "remarks " . 
 					 "FROM `order` " .
 					 "INNER JOIN customer ON `order`.customer_id = customer.id " .
 					 "INNER JOIN agent ON `order`.agent_id = agent.id " .
@@ -472,10 +478,17 @@ class Report extends Layout
 				if ($order['id'] != $prevOrderId) {
 					$activeSheet->setCellValue('B'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['customer']))));
 					$activeSheet->setCellValue('C'.$row, $order['tracking_number']);
+					
 					if ($order['balance'] < 0) {
 						$activeSheet->setCellValue('F'.$row, abs($order['balance']));
 					}
+					
 					$activeSheet->setCellValue('N'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['agent']))));
+					if (!in_array($order['agent'], $agentList)) {
+						$agentList[] = $order['agent'];
+						$agentTotalsCells[$order['agent']] = [];
+					} 
+					
 					$activeSheet->setCellValue('O'.$row, html_entity_decode(capitalizeWords(Filter::reinput($order['remarks']))));
 					
 					$backgroundColor->setRGB('FFFF00');
@@ -494,15 +507,73 @@ class Report extends Layout
 				$activeSheet->setCellValue('L'.$row, $order['net_price']);
 				$activeSheet->setCellValue('M'.$row, '=L'.$row.'*G'.$row);
 				
+				$agentTotalsCells[$order['agent']][] = 'M' . $row;
+				
+				if (!in_array($order['brand'], $brandList)) {
+					$brandList[] = $order['brand'];
+					$brandTotalsCells[$order['brand']] = [];
+				}
+				
+				$brandTotalsCells[$order['brand']][] = 'M' . $row;
+				
 				$row++;
 				$prevOrderId = $order['id'];
 			}
 		}
 		
+		// put totals
 		$row++;
 		$activeSheet->setCellValue('L'.$row, 'TOTAL:');
 		$activeSheet->setCellValue('M'.$row, '=SUM(M5:M'.($row-2).')');
 		
+		// fill agents
+		$col = 'Q';
+		$lastCol = $col;
+		foreach ($agentList as $agent) {
+			$activeSheet->setCellValue($col.'4', capitalizeWords(Filter::reinput($agent)));
+			$activeSheet->getColumnDimension($col)->setWidth(12);
+			
+			$agentTotalsFormula = '=' . implode('+', $agentTotalsCells[$agent]);
+			$activeSheet->setCellValue($col.'5', $agentTotalsFormula);
+			
+			$lastCol = $col;
+			$col++;
+		}
+		
+		$activeSheet->getStyle('Q5:'.$lastCol.$row)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
+		
+		// fill brands
+		$separatorCol = $col;
+		$col++;
+		$brandColStart = $col;
+		foreach ($brandList as $brand) {
+			$activeSheet->setCellValue($col.'4', capitalizeWords(Filter::reinput($brand)));
+			$activeSheet->getColumnDimension($col)->setWidth(12);
+			
+			$brandTotalsFormula = '=' . implode('+', $brandTotalsCells[$brand]);
+			$activeSheet->setCellValue($col.'5', $brandTotalsFormula);
+			
+			$lastCol = $col;
+			$col++;
+		}
+		
+		$activeSheet->getStyle($brandColStart.'5:'.$lastCol.$row)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
+		
+		// format column headers
+		$fontColor->setRGB(EXCEL_COLUMN_HEADER_FONT_COLOR);
+		$backgroundColor->setRGB(EXCEL_COLUMN_HEADER_BACKGROUND_COLOR);
+		$activeSheet->getStyle('P4:'.$lastCol.'4')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$activeSheet->getStyle('P4:'.$lastCol.'4')->getFill()->setStartColor($backgroundColor);
+		$activeSheet->getStyle('P4:'.$lastCol.'4')->getFont()->setColor($fontColor);
+		$activeSheet->getStyle('P4:'.$lastCol.'4')->getFont()->setBold(true);
+		$activeSheet->getStyle('P4:'.$lastCol.'4')->getAlignment()->setWrapText(true);
+		
+		// format separators
+		$backgroundColor->setRGB('000000');
+		$activeSheet->getStyle('P4:P'.$row)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$activeSheet->getStyle('P4:P'.$row)->getFill()->setStartColor($backgroundColor);
+		$activeSheet->getStyle($separatorCol.'4:'.$separatorCol.$row)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+		$activeSheet->getStyle($separatorCol.'4:'.$separatorCol.$row)->getFill()->setStartColor($backgroundColor);
 		
 		// post formatting
 		$activeSheet->getStyle('A5:A'.$row)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);
@@ -512,7 +583,7 @@ class Report extends Layout
 		$activeSheet->getStyle('I5:J'.$row)->getAlignment()->setWrapText(true);
 		$activeSheet->getStyle('L5:M'.$row)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
 		$activeSheet->getStyle('M5:M'.$row)->getFont()->setBold(true);
-		$activeSheet->getStyle('N5:N'.$row)->getAlignment()->setWrapText(true);
+		$activeSheet->getStyle('N5:O'.$row)->getAlignment()->setWrapText(true);
 		
 		// format totals
 		$activeSheet->getStyle('L'.$row)->getFont()->setBold(true);
