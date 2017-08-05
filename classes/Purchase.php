@@ -1184,7 +1184,7 @@ class Purchase extends Transaction
 		$activeSheet->setCellValue('A3', 'As of ' . $headingTimeStamp);
 		
 		// define max column
-		$MAX_COLUMN       = 'U';
+		$MAX_COLUMN       = 'W';
 		$FIELD_HEADER_ROW = '5';
 		
 		// format sheet headers
@@ -1214,12 +1214,14 @@ class Purchase extends Transaction
 					->setCellValue('M' . $FIELD_HEADER_ROW, 'Amount Payable (' . CURRENCY . ')')
 					->setCellValue('N' . $FIELD_HEADER_ROW, 'PDC Payable (' . CURRENCY . ')')
 					->setCellValue('O' . $FIELD_HEADER_ROW, 'Total Payable (' . CURRENCY . ')')
-					->setCellValue('P' . $FIELD_HEADER_ROW, 'Status')
-					->setCellValue('Q' . $FIELD_HEADER_ROW, 'Rebate Receivable (' . CURRENCY . ')')
-					->setCellValue('R' . $FIELD_HEADER_ROW, 'PDC Rebate (' . CURRENCY . ')')
-					->setCellValue('S' . $FIELD_HEADER_ROW, 'Total Rebate (' . CURRENCY . ')')
-					->setCellValue('T' . $FIELD_HEADER_ROW, 'Agent')
-					->setCellValue('U' . $FIELD_HEADER_ROW, 'Notes/Comments');
+					->setCellValue('P' . $FIELD_HEADER_ROW, 'Check Number')
+					->setCellValue('Q' . $FIELD_HEADER_ROW, 'Check Date')
+					->setCellValue('R' . $FIELD_HEADER_ROW, 'Purchase Status')
+					->setCellValue('S' . $FIELD_HEADER_ROW, 'Rebate Receivable (' . CURRENCY . ')')
+					->setCellValue('T' . $FIELD_HEADER_ROW, 'PDC Rebate (' . CURRENCY . ')')
+					->setCellValue('U' . $FIELD_HEADER_ROW, 'Total Rebate (' . CURRENCY . ')')
+					->setCellValue('V' . $FIELD_HEADER_ROW, 'Agent')
+					->setCellValue('W' . $FIELD_HEADER_ROW, 'Notes/Comments');
 		
 		// set column widths
 		$activeSheet->getColumnDimension('A')->setWidth(15);
@@ -1238,11 +1240,13 @@ class Purchase extends Transaction
 		$activeSheet->getColumnDimension('N')->setWidth(20);
 		$activeSheet->getColumnDimension('O')->setWidth(20);
 		$activeSheet->getColumnDimension('P')->setWidth(15);
-		$activeSheet->getColumnDimension('Q')->setWidth(22);
-		$activeSheet->getColumnDimension('R')->setWidth(20);
-		$activeSheet->getColumnDimension('S')->setWidth(20);
-		$activeSheet->getColumnDimension('T')->setWidth(30);
-		$activeSheet->getColumnDimension('U')->setWidth(50);
+		$activeSheet->getColumnDimension('Q')->setWidth(15);
+		$activeSheet->getColumnDimension('R')->setWidth(17);
+		$activeSheet->getColumnDimension('S')->setWidth(22);
+		$activeSheet->getColumnDimension('T')->setWidth(20);
+		$activeSheet->getColumnDimension('U')->setWidth(20);
+		$activeSheet->getColumnDimension('V')->setWidth(30);
+		$activeSheet->getColumnDimension('W')->setWidth(50);
 		
 		// format column headers
 		$fontColor->setRGB(EXCEL_COLUMN_HEADER_FONT_COLOR);
@@ -1262,10 +1266,18 @@ class Purchase extends Transaction
 		// initialize counters
 		$rowPtr    = $FIELD_HEADER_ROW + 1;
 		$itemCount = 0;
+		$purchases = array();
 		
 		// write data
 		if (self::$database->getResultCount($resultSet) > 0) {
+			// save results
 			while ($purchase = self::$database->getResultRow($resultSet)) {
+				$purchases[] = $purchase;
+			}
+			
+			foreach ($purchases as $purchase) {
+				$itemCount++;
+				
 				// purchase no.
 				$activeSheet->setCellValue('A' . $rowPtr, $purchase['id']);
 				
@@ -1365,42 +1377,67 @@ class Purchase extends Transaction
 				
 				// status
 				if ($purchase['cleared_date'] != null) {
-					$activeSheet->setCellValue('P' . $rowPtr, 'Cleared');
+					$activeSheet->setCellValue('R' . $rowPtr, 'Cleared');
 				} elseif ($purchase['canceled_date'] != null) {
-					$activeSheet->setCellValue('P' . $rowPtr, 'Canceled');
+					$activeSheet->setCellValue('R' . $rowPtr, 'Canceled');
 				}
 				
 				// rebate receivable
 				if ($purchase['rebate_receivable'] > 0) {
-					$activeSheet->setCellValue('Q' . $rowPtr, $purchase['rebate_receivable']);
+					$activeSheet->setCellValue('S' . $rowPtr, $purchase['rebate_receivable']);
 				}
 				
 				// pdc rebate
 				if ($purchase['pdc_rebate_receivable'] > 0) {
-					$activeSheet->setCellValue('R' . $rowPtr, $purchase['pdc_rebate_receivable']);
+					$activeSheet->setCellValue('T' . $rowPtr, $purchase['pdc_rebate_receivable']);
 				}
 				
 				// total rebate
-				$activeSheet->setCellValue('S' . $rowPtr, '=Q' . $rowPtr . '+R' . $rowPtr);
-				if ($activeSheet->getCell('S' . $rowPtr)->getCalculatedValue() == 0.000) {
-					$activeSheet->getStyle('S' . $rowPtr)->getFont()->setColor($fontColorGreen);
+				$activeSheet->setCellValue('U' . $rowPtr, '=S' . $rowPtr . '+T' . $rowPtr);
+				if ($activeSheet->getCell('U' . $rowPtr)->getCalculatedValue() == 0.000) {
+					$activeSheet->getStyle('U' . $rowPtr)->getFont()->setColor($fontColorGreen);
 				}
 				
-				$activeSheet->setCellValue('T' . $rowPtr, html_entity_decode(capitalizeWords(Filter::reinput($purchase['agent']))));
+				$activeSheet->setCellValue('V' . $rowPtr, html_entity_decode(capitalizeWords(Filter::reinput($purchase['agent']))));
 				
 				// notes/comments
-				$activeSheet->getCell('U' . $rowPtr)->setValueExplicit(stripslashes($purchase['remarks']), PHPExcel_Cell_DataType::TYPE_STRING);
+				$activeSheet->getCell('W' . $rowPtr)->setValueExplicit(stripslashes($purchase['remarks']), PHPExcel_Cell_DataType::TYPE_STRING);
 				
-				// set alternating row color
-				if (EXCEL_ALT_ROW > 0 && $rowPtr % EXCEL_ALT_ROW == 0) {
-					$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
-					$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setStartColor($altRowColor);
+				$resultSet = self::$database->query("SELECT check_number, check_date FROM purchase_payment " .
+													"WHERE payment_type = 'check' AND purchase_id = " . $purchase['id']);
+				if (self::$database->getResultCount($resultSet) > 0) {
+					while ($purchasePayment = self::$database->getResultRow($resultSet)) {
+						// check number
+						if ($purchasePayment['check_number'] != null) {
+							$activeSheet->setCellValue('P' . $rowPtr, $purchasePayment['check_number']);
+						}
+						
+						// check date
+						if ($purchasePayment['check_date'] != null) {
+							$activeSheet->setCellValue('Q' . $rowPtr, $purchasePayment['check_date']);
+						}
+						
+						// set alternating row color
+						if (EXCEL_ALT_ROW > 0 && $rowPtr % EXCEL_ALT_ROW == 0) {
+							$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+							$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setStartColor($altRowColor);
+						} else {
+							$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_NONE);
+						}
+						
+						$rowPtr++;
+					}
 				} else {
-					$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_NONE);
+					// set alternating row color
+					if (EXCEL_ALT_ROW > 0 && $rowPtr % EXCEL_ALT_ROW == 0) {
+						$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID);
+						$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setStartColor($altRowColor);
+					} else {
+						$activeSheet->getStyle('A' . $rowPtr . ':' . $MAX_COLUMN . $rowPtr)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_NONE);
+					}
+					
+					$rowPtr++;
 				}
-				
-				$rowPtr++;
-				$itemCount++;
 			}
 			
 			$rowPtr--;
@@ -1409,25 +1446,26 @@ class Purchase extends Transaction
 		
 		// post formatting
 		$activeSheet->getStyle('A6:A' . $rowPtr)->getFont()->setBold(true);                                    // set Purchase No. to bold
-		$activeSheet->getStyle('D6:D' . $rowPtr)->getAlignment()->setWrapText(true);                        // wrap Supplier
-		$activeSheet->getStyle('G6:G' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);        // format Purchase Date
-		$activeSheet->getStyle('H6:H' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);        // format Duration
-		$activeSheet->getStyle('I6:J' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);        // format Target Delivery Date and Date Delivered
-		$activeSheet->getStyle('K6:K' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);        // format No. of Items
-		$activeSheet->getStyle('L6:O' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);    // format amounts
-		$activeSheet->getStyle('Q6:S' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);    // format rebate
+		$activeSheet->getStyle('D6:D' . $rowPtr)->getAlignment()->setWrapText(true);                           // wrap Supplier
+		$activeSheet->getStyle('G6:G' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);         // format Purchase Date
+		$activeSheet->getStyle('H6:H' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);          // format Duration
+		$activeSheet->getStyle('I6:J' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);         // format Target Delivery Date and Date Delivered
+		$activeSheet->getStyle('K6:K' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);          // format No. of Items
+		$activeSheet->getStyle('L6:O' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);     // format amounts
+		$activeSheet->getStyle('Q6:Q' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_DATE_FORMAT);         // format Check Date
+		$activeSheet->getStyle('S6:U' . $rowPtr)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);     // format rebate
 		$activeSheet->getStyle('L6:L' . $rowPtr)->getFont()->setBold(true);                                    // set Total Amount to bold
 		$activeSheet->getStyle('O6:O' . $rowPtr)->getFont()->setBold(true);                                    // set Total Payable to bold
-		$activeSheet->getStyle('S6:S' . $rowPtr)->getFont()->setBold(true);                                    // set Total Rebate to bold
-		$activeSheet->getStyle('T6:U' . $rowPtr)->getAlignment()->setWrapText(true);                        // wrap Agent and Notes/Comments
+		$activeSheet->getStyle('U6:U' . $rowPtr)->getFont()->setBold(true);                                    // set Total Rebate to bold
+		$activeSheet->getStyle('V6:W' . $rowPtr)->getAlignment()->setWrapText(true);                           // wrap Agent and Notes/Comments
 		
 		// set columns to left aligned
 		$activeSheet->getStyle('A6:F' . $rowPtr)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
-		$activeSheet->getStyle('T6:U' . $rowPtr)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+		$activeSheet->getStyle('V6:W' . $rowPtr)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
 		
 		// conditional formatting
 		// * set Cleared to green, Canceled to grey
-		$conditionalStyles = $activeSheet->getStyle('P6:P' . $rowPtr)->getConditionalStyles();
+		$conditionalStyles = $activeSheet->getStyle('R6:R' . $rowPtr)->getConditionalStyles();
 		
 		$objConditional1 = new PHPExcel_Style_Conditional();
 		$objConditional1->setConditionType(PHPExcel_Style_Conditional::CONDITION_CELLIS);
@@ -1445,7 +1483,7 @@ class Purchase extends Transaction
 		
 		array_push($conditionalStyles, $objConditional2);
 		
-		$activeSheet->getStyle('P6:P' . $rowPtr)->setConditionalStyles($conditionalStyles);
+		$activeSheet->getStyle('R6:R' . $rowPtr)->setConditionalStyles($conditionalStyles);
 		
 		// write totals
 		$totalsRow = $rowPtr + 3;
@@ -1457,9 +1495,9 @@ class Purchase extends Transaction
 					->setCellValue('M' . $totalsRow, '=SUM(M6:M' . $rowPtr . ')')
 					->setCellValue('N' . $totalsRow, '=SUM(N6:N' . $rowPtr . ')')
 					->setCellValue('O' . $totalsRow, '=SUM(O6:O' . $rowPtr . ')')
-					->setCellValue('Q' . $totalsRow, '=SUM(Q6:Q' . $rowPtr . ')')
-					->setCellValue('R' . $totalsRow, '=SUM(R6:R' . $rowPtr . ')')
-					->setCellValue('S' . $totalsRow, '=SUM(S6:S' . $rowPtr . ')');
+					->setCellValue('S' . $totalsRow, '=SUM(S6:S' . $rowPtr . ')')
+					->setCellValue('T' . $totalsRow, '=SUM(T6:T' . $rowPtr . ')')
+					->setCellValue('U' . $totalsRow, '=SUM(U6:U' . $rowPtr . ')');
 		
 		// format totals
 		$styleArray = array(
@@ -1471,9 +1509,21 @@ class Purchase extends Transaction
 		$activeSheet->getStyle('C' . $totalsRow)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);
 		$activeSheet->getStyle('K' . $totalsRow)->getNumberFormat()->setFormatCode(EXCEL_INT_FORMAT);
 		$activeSheet->getStyle('L' . $totalsRow . ':O' . $totalsRow)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
-		$activeSheet->getStyle('Q' . $totalsRow . ':S' . $totalsRow)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
+		$activeSheet->getStyle('S' . $totalsRow . ':U' . $totalsRow)->getNumberFormat()->setFormatCode(EXCEL_CURRENCY_FORMAT);
 		$activeSheet->getStyle('A' . $totalsRow . ':' . $MAX_COLUMN . $totalsRow)->getFont()->setBold(true);
 		$activeSheet->getStyle('A' . $totalsRow . ':' . $MAX_COLUMN . $totalsRow)->getFont()->setColor($fontColorRed);
+		
+		// add right border
+		$styleArray = array(
+			'borders' => array(
+				'right' => array('style' => PHPExcel_Style_Border::BORDER_THIN)
+			)
+		);
+		$activeSheet->getStyle('L5:L' . $totalsRow)->applyFromArray($styleArray);
+		$activeSheet->getStyle('O5:O' . $totalsRow)->applyFromArray($styleArray);
+		$activeSheet->getStyle('Q5:Q' . $totalsRow)->applyFromArray($styleArray);
+		$activeSheet->getStyle('R5:R' . $totalsRow)->applyFromArray($styleArray);
+		$activeSheet->getStyle('U5:U' . $totalsRow)->applyFromArray($styleArray);
 		
 		// set vertical alignment to top
 		$activeSheet->getStyle('A1:' . $MAX_COLUMN . $totalsRow)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_TOP);
