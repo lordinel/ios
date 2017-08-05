@@ -1,10 +1,11 @@
 <?php
 $PAGE_NAME = 'Bug Tracker';
 
-$stableBuild = array('version' => '4.13',
-					 'label'   => '4.13');
+$stableBuild = array('version' => '4.14',
+					 'label'   => '4.14');
 
-$builds = array('4.12'   => '4.12',
+$builds = array('4.13'   => '4.13',
+				'4.12'   => '4.12',
 				'4.11'   => '4.11',
 				'4.10'   => '4.10',
 				'4.9'    => '4.9',
