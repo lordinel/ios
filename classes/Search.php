@@ -107,8 +107,15 @@ class Search extends Layout
 		} else {
 			$sqlQuery = $sqlQuery . " FROM " . $this->table . " WHERE " . $clause;
 		}
+		
+		// sort orders and purchases by date
+		if ( $this->table == "`order`" ) {
+			$sqlQuery = $sqlQuery . " ORDER BY order_date DESC";
+		} elseif ( $this->table == "purchase" ) {
+			$sqlQuery = $sqlQuery . " ORDER BY purchase_date DESC";
+		}
 		//echo $sqlQuery . '<br />';
-
+		
 
 		// execute query
 		$resultSet = self::$database->query( $sqlQuery );
